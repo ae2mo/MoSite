@@ -1,0 +1,9 @@
+# Only needed for the system tray launcher (tray_launcher.py) - the small
+# icon that lives near the clock instead of an open console window.
+# server.py itself needs nothing beyond the Python standard library.
+#
+# Install with:
+#   pip install -r requirements-tray.txt
+
+pystray>=0.19
+pillow>=10.0

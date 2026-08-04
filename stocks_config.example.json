@@ -1,0 +1,6 @@
+{
+  "_comment": "Copy this file to stocks_config.json (same folder) and fill in real values. stocks_config.json is read directly by the server and is never served over the network - but don't share it, paste it in chat, or commit it anywhere public.",
+  "apiKey": "YOUR_ALPACA_API_KEY_ID",
+  "apiSecret": "YOUR_ALPACA_API_SECRET_KEY",
+  "paper": true
+}

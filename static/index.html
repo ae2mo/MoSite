@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Budget Planner</title>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/nav.css">
+</head>
+<body data-page="budget">
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-top-row">
+      <div class="brand">
+        <div class="nav-menu-wrap">
+          <button type="button" class="brand-mark" id="nav-menu-trigger" aria-haspopup="true" aria-expanded="false" title="Switch section">$</button>
+          <div class="nav-menu" id="nav-menu" hidden></div>
+        </div>
+        <div>
+          <h1>Home Budget Planner</h1>
+          <p class="brand-sub">Personal finance, tracked and projected</p>
+        </div>
+      </div>
+      <div class="nav-menu-wrap" id="budget-settings-wrap">
+        <button type="button" class="brand-mark settings-gear-btn" id="budget-settings-trigger" aria-haspopup="true" aria-expanded="false" title="Budget settings">&#9881;</button>
+        <div class="nav-menu settings-menu" id="budget-settings-menu" hidden>
+          <a class="settings-menu-item" id="menu-download-backup-btn" href="/api/data/export" download>
+            <span class="nav-item-title">Download Backup</span>
+            <span class="nav-item-desc">Save a copy of all your budget data as a file</span>
+          </a>
+          <button type="button" class="settings-menu-item" id="menu-clear-data-btn">
+            <span class="nav-item-title">Clear Data</span>
+            <span class="nav-item-desc">Reset numbers for the current month</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="income">Income</button>
+      <button class="tab-btn" data-tab="expenses">Expenses</button>
+      <button class="tab-btn" data-tab="savings">Savings</button>
+      <button class="tab-btn" data-tab="trends">Trends</button>
+      <button class="tab-btn" data-tab="tsp">401K/TSP Projection</button>
+      <button class="tab-btn" data-tab="accounts">Accounts</button>
+      <button class="tab-btn" data-tab="taxprep">Tax Prep</button>
+    </nav>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <div class="month-bar" id="month-bar">
+    <button type="button" id="month-prev" class="month-nav-btn" aria-label="Previous month">&lsaquo;</button>
+    <input type="month" id="month-input">
+    <button type="button" id="month-next" class="month-nav-btn" aria-label="Next month">&rsaquo;</button>
+    <button type="button" id="month-today" class="link-btn">Today</button>
+    <span class="month-copy-hint" id="month-copy-hint"></span>
+  </div>
+
+  <!-- DASHBOARD -->
+  <section class="panel active" id="panel-dashboard">
+    <div class="summary-grid">
+      <div class="summary-card">
+        <span class="summary-label">Net Income This Month</span>
+        <span class="summary-value" id="sum-net-income">$0.00</span>
+      </div>
+      <div class="summary-card">
+        <span class="summary-label">Actual Spent This Month</span>
+        <span class="summary-value" id="sum-actual-expenses">$0.00</span>
+        <span class="summary-subvalue" id="sum-actual-expenses-sub">of $0.00 budgeted</span>
+      </div>
+      <div class="summary-card" id="sum-remaining-budget-card">
+        <span class="summary-label">Remaining Budget</span>
+        <span class="summary-value" id="sum-remaining-budget">$0.00</span>
+      </div>
+      <div class="summary-card" id="sum-leftover-card">
+        <span class="summary-label">Projected Savings</span>
+        <span class="summary-value" id="sum-leftover">$0.00</span>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="card">
+        <h2>Budgeted vs Actual by Category</h2>
+        <canvas id="chart-breakdown" width="480" height="320"></canvas>
+      </div>
+      <div class="card">
+        <h2>Category Tracker</h2>
+        <table class="tracker-table">
+          <thead>
+            <tr><th>Category</th><th>Budgeted</th><th>Actual</th><th>Difference</th><th>% Used</th></tr>
+          </thead>
+          <tbody id="dashboard-category-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Savings Tracker</h2>
+      <table class="tracker-table">
+        <thead>
+          <tr><th>Account</th><th>Current Balance</th><th>Planned This Month</th><th>Projected New Balance</th><th>Actual Saved</th><th>Carryover Balance</th></tr>
+        </thead>
+        <tbody id="dashboard-savings-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card" id="receipt-card">
+      <h2>Log a Receipt</h2>
+      <p class="card-hint">Itemize a receipt into lines, each tied to a specific item in Expenses or Savings &mdash; its amount adds straight into that item's Actual. You can also open this from the small &#43; button next to any item on the Expenses or Savings tab, which pre-fills that item as the target.</p>
+      <div class="inline-actions">
+        <button type="button" class="primary-btn" id="receipt-open-btn">+ Log a Receipt</button>
+        <button type="button" class="primary-btn secondary-btn" id="statement-import-open-btn">&#8593; Import Statement</button>
+      </div>
+      <p class="card-hint no-bottom-margin">Upload a bank/card statement PDF and go through each transaction &mdash; pick where it belongs (or skip it if you've already added it by hand).</p>
+    </div>
+  </section>
+
+  <!-- INCOME -->
+  <section class="panel" id="panel-income">
+    <div class="card narrow">
+      <h2>Income</h2>
+      <p class="card-hint">Add one row per paycheck you actually received this month. Paid biweekly? Most months that's two rows &mdash; some months it's three. Totals below adjust automatically either way. Star (&#9733;) a paycheck so it carries into next month; leave a one-time paycheck (like a bonus) unstarred so it doesn't repeat.</p>
+
+      <div id="pay-periods-list"></div>
+      <button type="button" id="add-pay-period-btn" class="add-item-btn">+ Add Pay Period</button>
+
+      <div class="income-derived">
+        <div><span>Total Gross This Month</span><strong id="derived-gross-total">$0.00</strong></div>
+        <div><span>Total Net This Month</span><strong id="derived-net-total">$0.00</strong></div>
+        <div><span>Est. Tax &amp; Deduction Rate</span><strong id="derived-deduction-rate">0%</strong></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPENSES -->
+  <section class="panel" id="panel-expenses">
+    <div class="expenses-toolbar">
+      <p class="card-hint">Budgeted is your plan for the month; Actual is what really happened. Click the &#43; next to any item to log a receipt line straight into its Actual (pre-filled to that item). If an item has receipt lines, a &#9656; arrow appears on the left &mdash; click it to see, edit, or delete each one. Click the star (&#9733;) on a recurring bill so it automatically carries into next month; unstarred items are treated as one-off and stay in the month you entered them. Changing a starred item's amount only affects months you haven't visited yet &mdash; already-created past months are left alone. Don't need a whole category anymore? "Remove Category" in its header deletes it (with a confirmation first). The "Savings" category at the very bottom mirrors your Savings tab accounts exactly &mdash; editing either place updates both instantly.</p>
+      <div class="expenses-total">
+        <div>Budgeted: <strong id="expenses-grand-budgeted">$0.00</strong></div>
+        <div>Actual: <strong id="expenses-grand-actual">$0.00</strong></div>
+        <div>Difference: <strong id="expenses-grand-diff">$0.00</strong></div>
+      </div>
+    </div>
+    <div id="expense-categories"></div>
+  </section>
+
+  <!-- SAVINGS -->
+  <section class="panel" id="panel-savings">
+    <div class="expenses-toolbar">
+      <p class="card-hint">Current Balance is what's in the account today; Planned This Month is how much you intend to add (this counts against your leftover the same way an expense does); Projected New Balance is Current Balance + Planned. Actual Saved is what you really put away &mdash; edit it directly or use the &#43; button to log a receipt/deposit (click the &#9656; arrow that appears to see, edit, or delete each one); Carryover Balance is Current Balance + Actual Saved, the real reconciled figure that rolls into next month. These accounts are the same ones shown under the linked "Savings" category on the Expenses tab &mdash; editing either place updates both instantly. Star (&#9733;) an account so next month's Current Balance rolls forward automatically from this month's Carryover Balance.</p>
+      <div class="expenses-total">
+        <div>Current Balance: <strong id="savings-grand-current">$0.00</strong></div>
+        <div>Planned This Month: <strong id="savings-grand-planned">$0.00</strong></div>
+        <div>Projected New Balance: <strong id="savings-grand-projected">$0.00</strong></div>
+        <div>Actual Saved: <strong id="savings-grand-actual-saved">$0.00</strong></div>
+        <div>Carryover Balance: <strong id="savings-grand-carryover">$0.00</strong></div>
+      </div>
+    </div>
+    <div id="savings-categories"></div>
+  </section>
+
+  <!-- TRENDS -->
+  <section class="panel" id="panel-trends">
+    <div class="card">
+      <h2>Budget Trend</h2>
+      <p class="card-hint">Every month you've opened (on the Income, Expenses, or Savings tab) shows up here. Jump ahead to a future month and add a planned expense or savings goal to see how it shifts your trend.</p>
+      <canvas id="chart-trends" width="900" height="320"></canvas>
+      <div class="legend">
+        <span class="legend-item"><i class="swatch swatch-mid"></i>Net Income</span>
+        <span class="legend-item"><i class="swatch swatch-low"></i>Actual Expenses</span>
+        <span class="legend-item"><i class="swatch swatch-savings"></i>Actual Savings</span>
+        <span class="legend-item"><i class="swatch swatch-high"></i>Leftover</span>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Month-by-Month Detail</h2>
+      <table class="tracker-table">
+        <thead>
+          <tr><th>Month</th><th>Net Income</th><th>Actual Expenses</th><th>Actual Savings</th><th>Leftover</th></tr>
+        </thead>
+        <tbody id="trends-table-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 401K/TSP -->
+  <section class="panel" id="panel-tsp">
+    <div class="tsp-top-row">
+      <div class="card narrow">
+        <h2>401K/TSP Projection</h2>
+        <p class="card-hint">Enter your current 401K/TSP balance, any ongoing monthly contribution, and the year you plan to retire. We'll project forward to that date &mdash; and 5 years on either side of it &mdash; compounding annually across three scenarios: a conservative, expected, and optimistic annual return. This is separate from your monthly budget above.</p>
+
+        <div class="form-row">
+          <label for="input-tsp-balance">Current 401K/TSP Balance</label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input type="number" id="input-tsp-balance" min="0" step="100" placeholder="0.00">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-tsp-contribution">Monthly Contribution</label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input type="number" id="input-tsp-contribution" min="0" step="10" placeholder="0.00">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="input-tsp-retirement-year">Projected Retirement Year</label>
+          <input type="number" id="input-tsp-retirement-year" min="1900" max="2200" step="1">
+          <p class="field-note" id="tsp-years-away-note"></p>
+        </div>
+      </div>
+
+      <div class="card narrow tsp-burn-card">
+        <h2>Annual Income on Retirement</h2>
+        <p class="card-hint">The annual income a withdrawal rate would generate from your projected 401K/TSP balance at your target retirement year, under the Expected (10%) growth scenario. 4% is a common rule-of-thumb safe withdrawal rate &mdash; drag the slider to try others.</p>
+        <div class="tsp-slider-row">
+          <input type="range" id="input-tsp-withdrawal-rate" min="0" max="100" step="0.5" value="4">
+          <span class="tsp-slider-value" id="tsp-withdrawal-rate-display">4.0%</span>
+        </div>
+        <span class="summary-value tsp-burn-value" id="tsp-burn-value">$0.00</span>
+        <p class="field-note" id="tsp-burn-note"></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Balance at Retirement &mdash; 5 Years Early / On Target / 5 Years Late</h2>
+      <p class="card-hint">Same three return scenarios, compared at three possible retirement dates so you can see how timing changes the outcome.</p>
+      <table class="tracker-table" id="tsp-milestone-table">
+        <thead>
+          <tr>
+            <th>Scenario</th>
+            <th id="tsp-milestone-early-label">5 Years Early</th>
+            <th id="tsp-milestone-target-label">Target Retirement</th>
+            <th id="tsp-milestone-late-label">5 Years Late</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="milestone-rate-tag scenario-low">Low (8%)</span></td>
+            <td id="tsp-milestone-low-early">$0.00</td>
+            <td id="tsp-milestone-low-target">$0.00</td>
+            <td id="tsp-milestone-low-late">$0.00</td>
+          </tr>
+          <tr>
+            <td><span class="milestone-rate-tag scenario-mid">Expected (10%)</span></td>
+            <td id="tsp-milestone-mid-early">$0.00</td>
+            <td id="tsp-milestone-mid-target">$0.00</td>
+            <td id="tsp-milestone-mid-late">$0.00</td>
+          </tr>
+          <tr>
+            <td><span class="milestone-rate-tag scenario-high">High (12%)</span></td>
+            <td id="tsp-milestone-high-early">$0.00</td>
+            <td id="tsp-milestone-high-target">$0.00</td>
+            <td id="tsp-milestone-high-late">$0.00</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Projected Growth</h2>
+      <canvas id="chart-tsp" width="900" height="360"></canvas>
+      <div class="legend">
+        <span class="legend-item"><i class="swatch swatch-low"></i>Low (8%)</span>
+        <span class="legend-item"><i class="swatch swatch-mid"></i>Expected (10%)</span>
+        <span class="legend-item"><i class="swatch swatch-high"></i>High (12%)</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="tsp-table-header">
+        <h2>Year-by-Year Detail</h2>
+        <select id="tsp-rate-select">
+          <option value="low">Low (8%)</option>
+          <option value="mid" selected>Expected (10%)</option>
+          <option value="high">High (12%)</option>
+        </select>
+      </div>
+      <table class="tracker-table">
+        <thead>
+          <tr><th>Year</th><th>Starting Balance</th><th>Contributions</th><th>Growth</th><th>Ending Balance</th></tr>
+        </thead>
+        <tbody id="tsp-table-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Retirement Burn-Down</h2>
+      <p class="card-hint">Starting from your projected balance at your target retirement year (Expected 10% growth), this assumes that balance keeps compounding at 10% a year while you withdraw the annual income amount shown above, every year. Shows how long that balance lasts at the withdrawal rate you chose above.</p>
+      <canvas id="chart-tsp-burndown" width="900" height="360"></canvas>
+      <p class="field-note" id="tsp-burndown-note"></p>
+    </div>
+  </section>
+
+  <!-- ACCOUNTS -->
+  <section class="panel" id="panel-accounts">
+    <div class="card">
+      <h2>Accounts</h2>
+      <p class="card-hint">Keep track of the sites and services you use &mdash; name, web address, username, password, cost, and any notes worth remembering. This isn't tied to a specific month. Accounts collapse down to just their name; click a name to expand it. The list stays sorted alphabetically. Click "Show" next to a password to reveal it while editing.</p>
+      <div id="accounts-list"></div>
+      <button type="button" id="add-account-btn" class="add-item-btn">+ Add Account</button>
+    </div>
+  </section>
+
+  <!-- TAX PREP -->
+  <section class="panel" id="panel-taxprep">
+    <div class="card">
+      <h2>Tax Prep</h2>
+      <p class="card-hint">A running checklist of what to have on hand at tax time, plus the key numbers your tax preparer (or you, if you're doing it yourself) will ask for first. Isn't tied to a specific month - check items off as documents come in, and reset the checklist for a new year with "Start New Tax Year" below. Nothing here is filed or sent anywhere; it's just a personal organizer.</p>
+      <div class="form-row">
+        <label for="taxprep-year">Tax Year</label>
+        <input type="number" id="taxprep-year" step="1" placeholder="2026">
+      </div>
+      <button type="button" id="taxprep-new-year-btn" class="link-btn">Start New Tax Year (resets checklist to unchecked)</button>
+    </div>
+
+    <div class="card">
+      <h3>Filing Info</h3>
+      <p class="card-hint">The basics any preparer asks for first - keeping these current makes every year's return faster.</p>
+      <div class="taxprep-key-grid">
+        <div class="form-row">
+          <label for="taxprep-filing-status">Filing Status</label>
+          <select id="taxprep-filing-status">
+            <option value="">-- Select --</option>
+            <option value="single">Single</option>
+            <option value="mfj">Married Filing Jointly</option>
+            <option value="mfs">Married Filing Separately</option>
+            <option value="hoh">Head of Household</option>
+            <option value="qss">Qualifying Surviving Spouse</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="taxprep-prior-agi">Prior-Year AGI</label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input type="number" id="taxprep-prior-agi" min="0" step="1" placeholder="0.00">
+          </div>
+        </div>
+        <div class="form-row">
+          <label for="taxprep-preparer-name">Preparer / CPA Name</label>
+          <input type="text" id="taxprep-preparer-name" placeholder="e.g. Jane Smith, CPA">
+        </div>
+        <div class="form-row">
+          <label for="taxprep-preparer-contact">Preparer Phone / Email</label>
+          <input type="text" id="taxprep-preparer-contact" placeholder="">
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="taxprep-dependents">Dependents (name, relationship, DOB)</label>
+        <textarea id="taxprep-dependents" rows="2" placeholder="e.g. Jamie Doe, daughter, 04/12/2020"></textarea>
+      </div>
+      <h4 class="taxprep-subheading">Estimated Tax Payments Made This Year</h4>
+      <div class="taxprep-quarters-grid">
+        <div class="form-row">
+          <label for="taxprep-est-q1">Q1</label>
+          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q1" min="0" step="1" placeholder="0.00"></div>
+        </div>
+        <div class="form-row">
+          <label for="taxprep-est-q2">Q2</label>
+          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q2" min="0" step="1" placeholder="0.00"></div>
+        </div>
+        <div class="form-row">
+          <label for="taxprep-est-q3">Q3</label>
+          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q3" min="0" step="1" placeholder="0.00"></div>
+        </div>
+        <div class="form-row">
+          <label for="taxprep-est-q4">Q4</label>
+          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q4" min="0" step="1" placeholder="0.00"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Life Events This Year</h3>
+      <p class="card-hint">Any of these can change your filing status, deductions, or withholding needs - worth flagging for your preparer even if you're not sure they matter.</p>
+      <textarea id="taxprep-life-events" rows="3" placeholder="e.g. Bought a house in June, started a side business, had a second child in October..."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="taxprep-checklist-header">
+        <h3>Document Checklist</h3>
+        <span class="taxprep-progress" id="taxprep-progress"></span>
+      </div>
+      <p class="card-hint">Grouped by category - check items off as you gather them, add a note (e.g. "waiting on employer"), or add/remove items and whole categories to match your situation. Nothing here applies to everyone; delete what doesn't.</p>
+      <div id="taxprep-categories-list"></div>
+      <button type="button" id="add-taxprep-category-btn" class="add-item-btn">+ Add Category</button>
+    </div>
+
+    <div class="card">
+      <h3>Notes for Your CPA / Preparer</h3>
+      <textarea id="taxprep-notes" rows="4" placeholder="Anything else worth mentioning - questions to ask, things that felt off on last year's return, etc."></textarea>
+    </div>
+  </section>
+
+</main>
+
+<div class="modal-overlay" id="receipt-overlay" hidden>
+  <div class="modal-card receipt-modal-card" role="dialog" aria-modal="true" aria-labelledby="receipt-modal-title">
+    <div class="modal-header">
+      <h2 id="receipt-modal-title">Log a Receipt</h2>
+      <button type="button" class="modal-close-btn" id="receipt-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <p class="card-hint">Enter the receipt total for reference, then add a line for each item &mdash; pick the category and the specific budget item it belongs to (or create a new one). Lines add into that item's Actual (or Actual Saved, for Savings items).</p>
+
+    <div class="form-row receipt-total-row">
+      <label for="receipt-total-input">Receipt Total (optional)</label>
+      <div class="input-prefix">
+        <span>$</span>
+        <input type="number" id="receipt-total-input" min="0" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+
+    <div class="receipt-item-form">
+      <input type="text" id="receipt-item-name" placeholder="Item description (e.g. Eggs)">
+      <select id="receipt-item-category"></select>
+      <select id="receipt-item-target"></select>
+      <div class="input-prefix">
+        <span>$</span>
+        <input type="number" id="receipt-item-amount" min="0" step="0.01" placeholder="0.00">
+      </div>
+      <button type="button" class="add-item-btn" id="receipt-add-item-btn">+ Add Line</button>
+    </div>
+    <div class="form-row receipt-new-item-row" id="receipt-new-item-row" hidden>
+      <label for="receipt-new-item-name">New item name</label>
+      <input type="text" id="receipt-new-item-name" placeholder="e.g. Cleaning Supplies">
+    </div>
+
+    <div id="receipt-draft-list"></div>
+
+    <div class="receipt-summary-row">
+      <span>Itemized total: <strong id="receipt-itemized-total">$0.00</strong></span>
+      <span class="field-note" id="receipt-remaining-note"></span>
+    </div>
+
+    <div class="stocks-actions">
+      <button type="button" class="primary-btn" id="receipt-commit-btn" disabled>Add All to Budget</button>
+      <span class="action-status" id="receipt-commit-status"></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="statement-overlay" hidden>
+  <div class="modal-card statement-modal-card" role="dialog" aria-modal="true" aria-labelledby="statement-modal-title">
+    <div class="modal-header">
+      <h2 id="statement-modal-title">Import Statement</h2>
+      <button type="button" class="modal-close-btn" id="statement-close-btn" aria-label="Close">&times;</button>
+    </div>
+
+    <!-- Step 1: pick a file -->
+    <div id="statement-upload-step">
+      <p class="card-hint">Upload a bank or credit card statement PDF (a transaction list export, not a scanned image). Each transaction gets its own line below so you can pick where it belongs, or skip anything you've already added by hand.</p>
+      <div class="inline-actions">
+        <input type="file" id="statement-file-input" accept="application/pdf,.pdf">
+        <button type="button" class="primary-btn" id="statement-parse-btn" disabled>Parse Statement</button>
+      </div>
+      <p class="action-status" id="statement-parse-status"></p>
+    </div>
+
+    <!-- Step 2: review each transaction -->
+    <div id="statement-review-step" hidden>
+      <p class="card-hint" id="statement-summary-line"></p>
+      <div class="stocks-actions">
+        <button type="button" class="link-btn" id="statement-select-all-btn">Select all</button>
+        <button type="button" class="link-btn" id="statement-deselect-all-btn">Deselect all</button>
+      </div>
+      <div id="statement-rows"></div>
+      <div class="stocks-actions">
+        <button type="button" class="primary-btn" id="statement-commit-btn">Import Selected</button>
+        <button type="button" class="link-btn" id="statement-start-over-btn">Start over with a different file</button>
+        <span class="action-status" id="statement-commit-status"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="clear-data-overlay" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="clear-data-title">
+    <div class="modal-header">
+      <h2 id="clear-data-title">Clear Data</h2>
+      <button type="button" class="modal-close-btn" id="clear-data-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <p class="card-hint">Resets numbers for <strong id="clear-data-month-label"></strong> only - other months are untouched. Your categories, items, and pay periods stay exactly as they are; this just zeroes out the amounts (and clears any receipt lines) in whichever of these you check. This can't be undone.</p>
+
+    <div class="checkbox-option-list">
+      <label class="checkbox-option-row">
+        <input type="checkbox" id="clear-data-income">
+        <span>Income <span class="field-note">(pay period gross/net &rarr; $0)</span></span>
+      </label>
+      <label class="checkbox-option-row">
+        <input type="checkbox" id="clear-data-expenses">
+        <span>Expenses <span class="field-note">(budgeted/actual &rarr; $0, receipt lines cleared)</span></span>
+      </label>
+      <label class="checkbox-option-row">
+        <input type="checkbox" id="clear-data-savings">
+        <span>Savings <span class="field-note">(balances/planned/actual saved &rarr; $0, receipt lines cleared)</span></span>
+      </label>
+    </div>
+
+    <div class="stocks-actions">
+      <button type="button" class="primary-btn danger-btn" id="clear-data-confirm-btn" disabled>Clear</button>
+      <span class="action-status" id="clear-data-status"></span>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">
+  <span id="save-status">All changes saved</span>
+</footer>
+
+<script src="/nav.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

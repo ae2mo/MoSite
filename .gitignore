@@ -1,0 +1,21 @@
+# Your personal data - never published. The server creates clean, empty
+# defaults for these automatically the first time it runs, so nothing
+# breaks by excluding them; they just aren't tracked by git.
+data.json
+meals_data.json
+stocks_data.json
+backups/
+
+# Secrets - your own API keys/tokens. Copy stocks_config.example.json to
+# stocks_config.json and fill in your own values; homeassistant_config.json
+# is created automatically the first time you save Home Assistant settings
+# on the Meal Planner's Shopping List tab.
+stocks_config.json
+homeassistant_config.json
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
+# Logs
+tray_launcher_error.log

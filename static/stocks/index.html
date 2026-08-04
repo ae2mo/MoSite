@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Trader</title>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/nav.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="stocks">
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-row">
+      <div class="brand">
+        <div class="nav-menu-wrap">
+          <button type="button" class="brand-mark" id="nav-menu-trigger" aria-haspopup="true" aria-expanded="false" title="Switch section">$</button>
+          <div class="nav-menu" id="nav-menu" hidden></div>
+        </div>
+        <div>
+          <h1>Stock Trader</h1>
+          <p class="brand-sub">Alpaca momentum screener &amp; order execution</p>
+        </div>
+      </div>
+      <button type="button" class="gear-btn" id="config-gear-btn" title="Alpaca API settings" aria-haspopup="dialog" aria-expanded="false">&#9881;</button>
+    </div>
+  </div>
+</header>
+
+<div class="modal-overlay" id="config-overlay" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="config-title">
+    <div class="modal-header">
+      <h2 id="config-title">Alpaca Settings</h2>
+      <button type="button" class="modal-close-btn" id="config-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <p class="card-hint" id="config-current">Loading current settings&hellip;</p>
+    <div class="form-row">
+      <label for="config-api-key">API Key ID</label>
+      <input type="text" id="config-api-key" autocomplete="off" spellcheck="false" placeholder="Leave blank to keep current key">
+    </div>
+    <div class="form-row">
+      <label for="config-api-secret">API Secret Key</label>
+      <input type="password" id="config-api-secret" autocomplete="off" spellcheck="false" placeholder="Leave blank to keep current secret">
+    </div>
+    <div class="form-row">
+      <label>Mode</label>
+      <div class="mode-toggle">
+        <label class="radio-row"><input type="radio" name="config-mode" id="config-mode-paper" value="paper"> Paper &mdash; simulated money</label>
+        <label class="radio-row"><input type="radio" name="config-mode" id="config-mode-live" value="live"> Live &mdash; real money</label>
+      </div>
+      <p class="field-note config-live-warning" id="config-live-warning" hidden>Live mode places real orders with real money on every Buy/Sell click. Only switch once you're comfortable with how this page behaves on paper.</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="primary-btn" id="config-save-btn">Save Settings</button>
+      <span class="action-status" id="config-status"></span>
+    </div>
+  </div>
+</div>
+
+<main class="app-main">
+
+  <div class="card" id="setup-banner" hidden>
+    <h2>Setup needed</h2>
+    <p class="card-hint" id="setup-message"></p>
+  </div>
+
+  <div class="summary-grid" id="account-summary">
+    <div class="summary-card">
+      <span class="summary-label">Mode</span>
+      <span class="summary-value" id="acct-mode">—</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Buying Power</span>
+      <span class="summary-value" id="acct-buying-power">$0.00</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Portfolio Value</span>
+      <span class="summary-value" id="acct-portfolio-value">$0.00</span>
+    </div>
+    <div class="summary-card">
+      <span class="summary-label">Cash</span>
+      <span class="summary-value" id="acct-cash">$0.00</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Momentum Screener</h2>
+    <p class="card-hint">Ranks the Dow + S&amp;P 500 by a technical momentum score (trend vs. moving averages, 20-day return, RSI, volume, consistency). This is a heuristic screening tool for experimentation &mdash; it does not predict or guarantee any stock will gain 10%, or any amount, in any timeframe. Not financial advice; past performance never guarantees future results.</p>
+    <div class="stocks-actions">
+      <button type="button" class="primary-btn" id="scan-btn">Scan Market</button>
+      <button type="button" class="primary-btn buy-btn" id="buy-btn">Buy Top Picks</button>
+      <button type="button" class="primary-btn sell-btn" id="sell-btn">Check &amp; Sell Signals</button>
+      <span class="action-status" id="action-status"></span>
+    </div>
+    <table class="tracker-table" id="picks-table">
+      <thead>
+        <tr><th>Symbol</th><th>Score</th><th>Price</th><th>20d Return</th><th>RSI(14)</th><th>50d MA</th><th>200d MA</th></tr>
+      </thead>
+      <tbody id="picks-body">
+        <tr><td colspan="7" class="empty-row">Click "Scan Market" to rank candidates.</td></tr>
+      </tbody>
+    </table>
+    <p class="field-note" id="scan-meta"></p>
+  </div>
+
+  <div class="card">
+    <h2>Positions</h2>
+    <table class="tracker-table" id="positions-table">
+      <thead>
+        <tr><th>Symbol</th><th>Qty</th><th>Avg Cost</th><th>Current Price</th><th>Market Value</th><th>Unrealized P/L</th></tr>
+      </thead>
+      <tbody id="positions-body">
+        <tr><td colspan="6" class="empty-row">No open positions.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" id="sell-review-card" hidden>
+    <h2>Sell Signal Review</h2>
+    <p class="card-hint">Every open position, with the exit rule's read on it (price fell below its 50-day average, or RSI is overbought above 78 &mdash; otherwise Hold). Nothing is sold automatically. Click Sell on a row and confirm to place that one order.</p>
+    <table class="tracker-table" id="sell-review-table">
+      <thead>
+        <tr><th>Symbol</th><th>Qty</th><th>Avg Cost</th><th>Current Price</th><th>Market Value</th><th>Unrealized P/L</th><th>Signal</th><th></th></tr>
+      </thead>
+      <tbody id="sell-review-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Portfolio Value Trend</h2>
+    <p class="card-hint">A snapshot is recorded automatically each time this page loads or refreshes account info.</p>
+    <canvas id="chart-portfolio" width="900" height="280"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Activity Log</h2>
+    <div id="activity-log"><p class="empty-row">No activity yet.</p></div>
+  </div>
+
+  <div class="card narrow">
+    <h2>Settings</h2>
+    <div class="form-row">
+      <label for="setting-top-n">Number of Top Picks</label>
+      <input type="number" id="setting-top-n" min="1" max="50" step="1">
+    </div>
+    <div class="form-row">
+      <label for="setting-universe">Universe</label>
+      <select id="setting-universe">
+        <option value="sp500_dow">S&amp;P 500 + Dow 30</option>
+        <option value="sp500">S&amp;P 500 only</option>
+        <option value="dow">Dow 30 only</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label for="setting-min-price">Minimum Share Price</label>
+      <div class="input-prefix">
+        <span>$</span>
+        <input type="number" id="setting-min-price" min="0" step="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <label class="checkbox-row"><input type="checkbox" id="setting-exclude-held"> Skip buying stocks I already hold</label>
+    </div>
+    <button type="button" class="add-item-btn" id="save-settings-btn">Save Settings</button>
+    <p class="field-note" id="settings-status"></p>
+  </div>
+
+</main>
+
+<footer class="app-footer">
+  <span id="save-status">Ready</span>
+</footer>
+
+<script src="/nav.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

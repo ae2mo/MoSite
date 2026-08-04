@@ -1,0 +1,501 @@
+/* Meal Planner page - small additions on top of the shared /style.css
+   design system (cards, tables, buttons, .account-field-label, etc.). */
+
+.card-hint a {
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+/* Header top row + settings gear/menu: see shared /style.css - used here
+   and on the Budget page. */
+
+/* Shopping list export / Send to Home Assistant */
+
+.shopping-export-actions {
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.send-ha-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gear-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--slate-200);
+  background: var(--paper);
+  color: var(--slate-600);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
+.gear-btn:hover {
+  background: var(--white);
+  color: var(--navy-950);
+}
+
+#export-text {
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 13px;
+}
+
+.meals-toolbar-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.meals-toolbar-buttons .add-item-btn {
+  width: auto;
+  flex: 1 1 200px;
+}
+
+.week-label {
+  font-size: 14px;
+  font-weight: 650;
+  color: var(--navy-950);
+  min-width: 200px;
+  text-align: center;
+}
+
+/* Weekly plan table */
+
+.plan-table td { vertical-align: middle; }
+
+.plan-day-label {
+  font-weight: 650;
+  color: var(--navy-950);
+  white-space: nowrap;
+}
+
+.plan-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-slot select {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 7px 9px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--navy-950);
+  width: 100%;
+  max-width: 220px;
+}
+
+.plan-slot select:hover,
+.plan-slot select:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+.servings-wrap {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.servings-wrap span {
+  font-size: 12px;
+  color: var(--slate-400);
+  font-weight: 650;
+}
+
+.servings-input {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 7px 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--navy-950);
+  width: 52px;
+  text-align: center;
+}
+
+.servings-input:hover,
+.servings-input:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+/* Favorite meals list */
+
+.meal-card {
+  background: var(--white);
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 10px;
+  padding: 8px 20px;
+}
+
+.meal-card.expanded {
+  margin-bottom: 16px;
+  padding: 16px 20px;
+}
+
+.meal-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.meal-card.expanded .meal-card-header {
+  margin-bottom: 14px;
+}
+
+.meal-name-toggle {
+  flex: 1 1 auto;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--navy-950);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.meal-name-toggle:hover { color: var(--accent-dark); }
+
+.meal-ingredient-count {
+  font-size: 12px;
+  color: var(--slate-400);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.meal-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+  max-width: 420px;
+}
+
+.meal-field-row input[type="text"] {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 8px 10px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--navy-950);
+}
+
+.meal-field-row textarea {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 9px 11px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--navy-950);
+  resize: vertical;
+}
+
+.meal-field-row input[type="text"]:hover,
+.meal-field-row input[type="text"]:focus,
+.meal-field-row textarea:hover,
+.meal-field-row textarea:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+.ingredient-labels {
+  display: grid;
+  grid-template-columns: 1fr 80px 110px 160px 30px;
+  gap: 8px;
+  padding: 0 0 4px 0;
+}
+
+.ingredient-labels span {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--slate-400);
+  font-weight: 650;
+}
+
+.ingredients-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.ingredient-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 110px 160px 30px;
+  gap: 8px;
+  align-items: center;
+}
+
+.ingredient-row input[type="text"],
+.ingredient-row input[type="number"] {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 7px 9px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--navy-950);
+  width: 100%;
+}
+
+.ingredient-row input[type="text"]:hover,
+.ingredient-row input[type="text"]:focus,
+.ingredient-row input[type="number"]:hover,
+.ingredient-row input[type="number"]:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+.ingredient-row select {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 7px 9px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--navy-950);
+  width: 100%;
+}
+
+/* Shopping list */
+
+.shopping-group { margin-bottom: 16px; }
+
+.shopping-group h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--slate-400);
+  font-weight: 700;
+  margin-bottom: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--slate-100);
+}
+
+.shopping-line-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 2px;
+}
+
+.shopping-line-row input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.shopping-line-text {
+  flex: 1 1 auto;
+  font-size: 13.5px;
+  color: var(--navy-950);
+}
+
+.shopping-line-row.checked .shopping-line-text {
+  color: var(--slate-400);
+  text-decoration: line-through;
+}
+
+.shopping-line-meals {
+  display: block;
+  font-size: 11.5px;
+  color: var(--slate-400);
+  font-weight: 500;
+}
+
+.shopping-line-row .remove-item-btn {
+  flex-shrink: 0;
+}
+
+.extra-item-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--slate-100);
+}
+
+.extra-item-form input[type="text"] {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 8px 10px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--navy-950);
+}
+
+.extra-item-form input[type="text"]:hover,
+.extra-item-form input[type="text"]:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+#extra-item-name { flex: 1 1 200px; }
+.extra-item-qty-input { flex: 0 1 70px; }
+#extra-item-unit { flex: 0 1 110px; }
+
+.extra-item-form select {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 8px 9px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--navy-950);
+  flex: 0 1 170px;
+}
+
+.extra-item-form .add-item-btn {
+  margin-top: 0;
+  width: auto;
+  white-space: nowrap;
+  padding: 9px 14px;
+  flex: 0 0 auto;
+}
+
+/* Modal (shared .modal-overlay/.modal-card/.modal-header/.modal-close-btn
+   come from /style.css - this just adds the Import Recipe modal's own
+   layout on top). */
+
+.modal-card.import-modal-card {
+  max-width: 700px;
+}
+
+.form-row input[type="text"] {
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 100%;
+  font-family: inherit;
+  color: var(--navy-950);
+}
+
+.form-row textarea {
+  border: 1px solid var(--slate-200);
+  border-radius: 8px;
+  background: var(--paper);
+  padding: 10px 12px;
+  font-size: 13.5px;
+  width: 100%;
+  font-family: inherit;
+  color: var(--navy-950);
+  resize: vertical;
+  margin-bottom: 10px;
+}
+
+.form-row input[type="text"]:hover,
+.form-row input[type="text"]:focus,
+.form-row textarea:hover,
+.form-row textarea:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+.import-url-row {
+  display: flex;
+  gap: 8px;
+}
+
+.import-url-row input[type="text"] { flex: 1 1 auto; }
+
+.import-url-row .add-item-btn {
+  width: auto;
+  white-space: nowrap;
+  margin-top: 0;
+  flex: 0 0 auto;
+}
+
+#import-ingredients-list {
+  margin-bottom: 10px;
+}
+
+.import-modal-card .modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--slate-100);
+}
+
+/* Danger item inside the settings gear menu (Clear All Meals) */
+
+.settings-menu-item.danger-item .nav-item-title {
+  color: var(--red);
+}
+
+/* Meals tab: ingredient search sidebar + main list, side by side */
+
+.meals-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.meals-search-card {
+  position: sticky;
+  top: 16px;
+}
+
+.meal-search-row {
+  margin-bottom: 12px;
+}
+
+.meal-search-row label {
+  display: block;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--slate-600);
+  margin-bottom: 4px;
+}
+
+.meal-search-row input[type="text"] {
+  width: 100%;
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 7px 9px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--navy-950);
+}
+
+.meal-search-row input[type="text"]:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+#meal-search-clear-btn {
+  margin-bottom: 6px;
+}
+
+@media (max-width: 880px) {
+  .meals-layout { grid-template-columns: 1fr; }
+  .meals-search-card { position: static; }
+}

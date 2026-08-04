@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meal Planner</title>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/nav.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="meals">
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-top-row">
+      <div class="brand">
+        <div class="nav-menu-wrap">
+          <button type="button" class="brand-mark" id="nav-menu-trigger" aria-haspopup="true" aria-expanded="false" title="Switch section">$</button>
+          <div class="nav-menu" id="nav-menu" hidden></div>
+        </div>
+        <div>
+          <h1>Meal Planner</h1>
+          <p class="brand-sub">Favorite meals, weekly plan, and a shopping list</p>
+        </div>
+      </div>
+      <div class="nav-menu-wrap" id="meals-settings-wrap" hidden>
+        <button type="button" class="brand-mark settings-gear-btn" id="meals-settings-trigger" aria-haspopup="true" aria-expanded="false" title="Recipe import options">&#9881;</button>
+        <div class="nav-menu settings-menu" id="meals-settings-menu" hidden>
+          <button type="button" class="settings-menu-item" id="menu-import-recipe-btn">
+            <span class="nav-item-title">+ Import Recipe</span>
+            <span class="nav-item-desc">Pull one recipe in from a URL, or paste ingredients by hand</span>
+          </button>
+          <button type="button" class="settings-menu-item" id="menu-import-all-themealdb-btn">
+            <span class="nav-item-title">Import All from TheMealDB</span>
+            <span class="nav-item-desc">Fetch TheMealDB's entire recipe database (300+ meals)</span>
+          </button>
+          <button type="button" class="settings-menu-item danger-item" id="menu-clear-all-meals-btn">
+            <span class="nav-item-title">Clear All Meals</span>
+            <span class="nav-item-desc">Remove every meal from your list &mdash; can't be undone</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="plan">Weekly Plan</button>
+      <button class="tab-btn" data-tab="meals">Meals</button>
+      <button class="tab-btn" data-tab="shopping">Shopping List</button>
+    </nav>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <!-- WEEKLY MEAL PLAN -->
+  <section class="panel active" id="panel-plan">
+    <div class="card">
+      <h2>Weekly Meal Plan</h2>
+      <p class="card-hint">Assign a favorite meal to Lunch and/or Dinner for each day. Leave a slot as "&mdash;" if you don't need one. Each meal's ingredients are defined for 1 serving &mdash; use the &times; field next to a slot to scale it up (2, 3, 1.5&hellip;) and the shopping list will multiply that meal's amounts accordingly. Switching weeks keeps every week's plan separate.</p>
+
+      <div class="month-bar" id="week-bar">
+        <button type="button" id="week-prev" class="month-nav-btn" aria-label="Previous week">&lsaquo;</button>
+        <span class="week-label" id="week-label">Week of &mdash;</span>
+        <button type="button" id="week-next" class="month-nav-btn" aria-label="Next week">&rsaquo;</button>
+        <button type="button" id="week-today" class="link-btn">This Week</button>
+      </div>
+
+      <table class="tracker-table plan-table" id="plan-table">
+        <thead>
+          <tr><th>Day</th><th>Lunch</th><th>Dinner</th></tr>
+        </thead>
+        <tbody id="plan-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- FAVORITE MEALS -->
+  <section class="panel" id="panel-meals">
+    <div class="meals-layout">
+      <aside class="card meals-search-card">
+        <h2>Find by Ingredient</h2>
+        <p class="card-hint">Narrow the list to meals containing specific ingredients. Type or pick from the list &mdash; each box narrows to ingredients found in meals matching what you've already picked.</p>
+
+        <div class="meal-search-row">
+          <label for="meal-search-1">Ingredient 1</label>
+          <input type="text" id="meal-search-1" list="meal-search-1-list" placeholder="Type or select…" autocomplete="off">
+          <datalist id="meal-search-1-list"></datalist>
+        </div>
+        <div class="meal-search-row">
+          <label for="meal-search-2">Ingredient 2</label>
+          <input type="text" id="meal-search-2" list="meal-search-2-list" placeholder="Type or select…" autocomplete="off">
+          <datalist id="meal-search-2-list"></datalist>
+        </div>
+        <div class="meal-search-row">
+          <label for="meal-search-3">Ingredient 3</label>
+          <input type="text" id="meal-search-3" list="meal-search-3-list" placeholder="Type or select…" autocomplete="off">
+          <datalist id="meal-search-3-list"></datalist>
+        </div>
+        <div class="meal-search-row">
+          <label for="meal-search-4">Ingredient 4</label>
+          <input type="text" id="meal-search-4" list="meal-search-4-list" placeholder="Type or select…" autocomplete="off">
+          <datalist id="meal-search-4-list"></datalist>
+        </div>
+
+        <button type="button" class="link-btn" id="meal-search-clear-btn">Clear Filters</button>
+        <p class="field-note" id="meal-search-count-note"></p>
+      </aside>
+
+      <div class="card meals-main-card">
+        <h2>Meals</h2>
+        <p class="card-hint">Keep a list of meals you make often, with their ingredients (name, amount, unit, and grocery category). Click a meal's name to expand it and edit, or click the star to favorite it and pin it to the top of the list. These are what you'll assign to days on the Weekly Plan tab.</p>
+        <div class="meals-toolbar-buttons">
+          <button type="button" class="add-item-btn" id="add-meal-btn">+ Add Meal</button>
+        </div>
+        <p class="action-status" id="import-all-status"></p>
+        <div id="meals-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOPPING LIST -->
+  <section class="panel" id="panel-shopping">
+    <div class="card">
+      <h2>Shopping List</h2>
+      <p class="card-hint">Builds a list from every meal assigned in the week on the Weekly Plan tab, combining matching ingredients (same name and unit) into one line and grouping by grocery category. Checked items and anything you add by hand stay saved for this week.</p>
+
+      <div class="stocks-actions">
+        <button type="button" class="primary-btn" id="generate-list-btn">Generate Shopping List</button>
+        <span class="action-status" id="shopping-status"></span>
+      </div>
+
+      <div class="stocks-actions shopping-export-actions">
+        <button type="button" class="add-item-btn" id="export-list-btn">Export List</button>
+        <div class="send-ha-wrap">
+          <button type="button" class="add-item-btn" id="send-ha-btn">Send to Home Assistant</button>
+          <button type="button" class="gear-btn" id="ha-settings-gear-btn" title="Home Assistant settings" aria-haspopup="dialog" aria-expanded="false">&#9881;</button>
+        </div>
+        <span class="action-status" id="export-status"></span>
+      </div>
+
+      <div id="shopping-list"></div>
+
+      <div class="extra-item-form">
+        <input type="text" id="extra-item-name" placeholder="Item name">
+        <input type="text" id="extra-item-qty" placeholder="Qty" class="extra-item-qty-input">
+        <input type="text" id="extra-item-unit" placeholder="Unit">
+        <select id="extra-item-category"></select>
+        <button type="button" class="add-item-btn" id="add-extra-item-btn">+ Add Extra Item</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="modal-overlay" id="import-overlay" hidden>
+  <div class="modal-card import-modal-card" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
+    <div class="modal-header">
+      <h2 id="import-modal-title">Import a Recipe</h2>
+      <button type="button" class="modal-close-btn" id="import-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <p class="card-hint">Paste a recipe URL and click Fetch to pull its ingredients automatically. Works best with <a href="https://www.themealdb.com" target="_blank" rel="noopener">TheMealDB</a> &mdash; paste the URL of a specific meal page (looks like themealdb.com/meal/52772-some-recipe-name), not a search or browse page. Also works on other sites that publish structured recipe data, and on RecipeDB (cosylab.iiitd.edu.in/recipedb, less reliable). If a URL doesn't work, or you'd rather not use one, just paste the ingredient list yourself below. Either way, review and fix anything before adding it to your Favorite Meals.</p>
+
+    <div class="form-row">
+      <label for="import-url">Recipe URL (optional)</label>
+      <div class="import-url-row">
+        <input type="text" id="import-url" placeholder="https://example.com/recipe" autocomplete="off" spellcheck="false">
+        <button type="button" class="add-item-btn" id="import-fetch-btn">Fetch from URL</button>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label for="import-meal-name">Meal Name</label>
+      <input type="text" id="import-meal-name" placeholder="e.g. Spaghetti Bolognese">
+    </div>
+
+    <div class="form-row">
+      <label for="import-servings">Servings in this recipe</label>
+      <input type="number" id="import-servings" min="1" step="1" value="1">
+      <p class="field-note">Amounts below are for the whole recipe &mdash; they'll be divided by <strong id="import-servings-echo">1</strong> and saved per serving, matching how your other meals work.</p>
+    </div>
+
+    <div class="form-row">
+      <label for="import-ingredients-text">Ingredients (one per line)</label>
+      <textarea id="import-ingredients-text" rows="6" placeholder="2 cups flour&#10;1 tsp salt&#10;3 large eggs"></textarea>
+      <button type="button" class="add-item-btn" id="import-parse-btn">Parse Ingredients</button>
+    </div>
+
+    <div class="ingredient-labels">
+      <span>Ingredient</span><span>Qty</span><span>Unit</span><span>Category</span><span></span>
+    </div>
+    <div id="import-ingredients-list"></div>
+    <button type="button" class="add-item-btn" id="import-add-row-btn">+ Add Row</button>
+
+    <div class="form-row">
+      <label for="import-instructions">Instructions (optional)</label>
+      <textarea id="import-instructions" rows="6" placeholder="Fetched automatically when available - review and edit before adding."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="primary-btn" id="import-commit-btn">Add to Meals</button>
+      <button type="button" class="link-btn" id="import-cancel-btn">Cancel</button>
+      <span class="action-status" id="import-status"></span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="export-overlay" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
+    <div class="modal-header">
+      <h2 id="export-modal-title">Export Shopping List</h2>
+      <button type="button" class="modal-close-btn" id="export-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <p class="card-hint">Everything still unchecked on this week's list, one item per line &mdash; select all and copy, or download it as a text file to paste into Home Assistant's Shopping List (or anywhere else).</p>
+    <div class="form-row">
+      <textarea id="export-text" rows="12" readonly></textarea>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="primary-btn" id="export-download-btn">Download as .txt</button>
+      <button type="button" class="link-btn" id="export-close-btn-2">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ha-settings-overlay" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="ha-settings-title">
+    <div class="modal-header">
+      <h2 id="ha-settings-title">Home Assistant Settings</h2>
+      <button type="button" class="modal-close-btn" id="ha-settings-close-btn" aria-label="Close">&times;</button>
+    </div>
+    <p class="card-hint" id="ha-settings-current">Loading current settings&hellip;</p>
+    <div class="form-row">
+      <label for="ha-base-url">Home Assistant URL</label>
+      <input type="text" id="ha-base-url" autocomplete="off" spellcheck="false" placeholder="http://homeassistant.local:8123">
+    </div>
+    <div class="form-row">
+      <label for="ha-token">Long-Lived Access Token</label>
+      <input type="password" id="ha-token" autocomplete="off" spellcheck="false" placeholder="Leave blank to keep current token">
+      <p class="field-note">Create one in Home Assistant: click your profile (bottom left) &rarr; Security tab &rarr; Long-Lived Access Tokens &rarr; Create Token.</p>
+    </div>
+    <div class="form-row">
+      <label for="ha-todo-entity">Shopping List Entity</label>
+      <input type="text" id="ha-todo-entity" autocomplete="off" spellcheck="false" placeholder="todo.shopping_list">
+      <p class="field-note">The to-do list to fill in - check Settings &rarr; Devices &amp; Services &rarr; Entities in Home Assistant if you're not sure of the exact id.</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="primary-btn" id="ha-settings-save-btn">Save &amp; Test</button>
+      <span class="action-status" id="ha-settings-status"></span>
+    </div>
+  </div>
+</div>
+
+<footer class="app-footer">
+  <span id="save-status">Ready</span>
+</footer>
+
+<script src="/nav.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
