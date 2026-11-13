@@ -160,6 +160,50 @@ def save_meals_data(data):
     snapshot_backup(MEALS_DATA_FILE, "meals_data")
 
 
+# Home/Car Maintenance has its own JSON blob too (same generic approach) -
+# all logbook logic lives in static/maintenance/app.js.
+
+MAINT_DATA_FILE = os.path.join(BASE_DIR, "maintenance_data.json")
+MAINT_DATA_LOCK = threading.Lock()
+
+
+def build_default_maintenance_data():
+    return {
+        "home": {"tasks": [], "plans": []},
+        "cars": [],
+        "activeCar": None,
+        "nextId": 1,
+    }
+
+
+def load_maintenance_data():
+    with MAINT_DATA_LOCK:
+        if not os.path.exists(MAINT_DATA_FILE):
+            data = build_default_maintenance_data()
+            _write_maintenance_data(data)
+            return data
+        try:
+            with open(MAINT_DATA_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            data = build_default_maintenance_data()
+            _write_maintenance_data(data)
+            return data
+
+
+def _write_maintenance_data(data):
+    tmp_path = MAINT_DATA_FILE + ".tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp_path, MAINT_DATA_FILE)
+
+
+def save_maintenance_data(data):
+    with MAINT_DATA_LOCK:
+        _write_maintenance_data(data)
+    snapshot_backup(MAINT_DATA_FILE, "maintenance_data")
+
+
 CONTENT_TYPES = {
     ".html": "text/html; charset=utf-8",
     ".css": "text/css; charset=utf-8",
@@ -259,6 +303,28 @@ class BudgetRequestHandler(BaseHTTPRequestHandler):
             self._send_json(200, load_meals_data())
             return
 
+        if route == "/api/maintenance-data":
+            self._send_json(200, load_maintenance_data())
+            return
+
+        if route == "/api/maintenance/recalls":
+            from urllib.parse import parse_qs
+            q = parse_qs(parsed.query)
+            try:
+                import maintenance_recalls
+                result = maintenance_recalls.check(
+                    vin=(q.get("vin") or [""])[0],
+                    year=(q.get("year") or [""])[0],
+                    make=(q.get("make") or [""])[0],
+                    model=(q.get("model") or [""])[0],
+                )
+                self._send_json(200, result)
+            except ValueError as e:
+                self._send_json(400, {"error": str(e)})
+            except Exception as e:
+                self._send_json(502, {"error": "Couldn't reach NHTSA: %s" % e})
+            return
+
         if route == "/api/meals/homeassistant-config":
             import homeassistant_export
             self._send_json(200, homeassistant_export.get_config_public())
@@ -329,6 +395,16 @@ class BudgetRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(400, {"error": "invalid json"})
                 return
             save_meals_data(incoming)
+            self._send_json(200, {"status": "ok"})
+            return
+
+        if parsed.path == "/api/maintenance-data":
+            try:
+                incoming = self._read_json_body()
+            except json.JSONDecodeError:
+                self._send_json(400, {"error": "invalid json"})
+                return
+            save_maintenance_data(incoming)
             self._send_json(200, {"status": "ok"})
             return
 
@@ -435,6 +511,10 @@ class BudgetRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(200, {"entries": engine.get_log()})
             elif subpath == "history":
                 self._send_json(200, {"snapshots": engine.get_history()})
+            elif subpath == "auto":
+                self._send_json(200, engine.get_auto_status())
+            elif subpath == "backtest":
+                self._send_json(200, engine.get_backtest_status())
             else:
                 self._send_json(404, {"error": "not found"})
         except Exception as e:
@@ -457,6 +537,8 @@ class BudgetRequestHandler(BaseHTTPRequestHandler):
                 self._send_json(200, engine.save_settings(body))
             elif subpath == "config":
                 self._send_json(200, engine.save_config(body))
+            elif subpath == "backtest":
+                self._send_json(200, engine.start_backtest(body))
             elif subpath == "scan":
                 self._send_json(200, engine.run_scan())
             elif subpath == "buy":
@@ -491,11 +573,19 @@ def _local_network_ip():
         return None
 
 
+
 def main():
     load_data()  # ensure data.json exists
     load_meals_data()  # ensure meals_data.json exists
+    load_maintenance_data()  # ensure maintenance_data.json exists
+    snapshot_backup(MAINT_DATA_FILE, "maintenance_data")
     snapshot_backup(DATA_FILE, "data")
     snapshot_backup(MEALS_DATA_FILE, "meals_data")
+    try:
+        import stocks_engine
+        stocks_engine.start_scheduler()  # hourly Auto Mode cycle (no-op unless switched on)
+    except Exception:
+        pass
     httpd = ThreadingHTTPServer((HOST, PORT), BudgetRequestHandler)
     print("Home Budget Planner running.")
     print(f"  Local:   http://localhost:{PORT}")

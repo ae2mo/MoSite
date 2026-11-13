@@ -367,6 +367,12 @@ h1, h2, h3 { margin: 0; }
   margin-bottom: 0;
 }
 
+.tsp-top-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .tsp-burn-card {
   display: flex;
   flex-direction: column;
@@ -1522,139 +1528,4 @@ select {
 .account-desc-row textarea:focus {
   border-color: var(--slate-200);
   background: var(--white);
-}
-
-/* Tax Prep tab */
-
-.taxprep-key-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 4px 18px;
-}
-
-.taxprep-subheading {
-  font-size: 12.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--slate-400);
-  font-weight: 700;
-  margin: 6px 0 12px 0;
-}
-
-.taxprep-quarters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
-  gap: 4px 18px;
-}
-
-.taxprep-checklist-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.taxprep-progress {
-  font-size: 12.5px;
-  font-weight: 650;
-  color: var(--slate-400);
-  white-space: nowrap;
-}
-
-.taxprep-category {
-  background: var(--white);
-  border: 1px solid var(--slate-200);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  margin-bottom: 16px;
-  overflow: hidden;
-}
-
-.taxprep-category-header {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 20px;
-  background: var(--header-bg);
-  color: #ffffff;
-}
-
-.taxprep-category-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-}
-
-.taxprep-category-header .expand-btn { color: #8996ab; flex-shrink: 0; }
-.taxprep-category-header .expand-btn:hover { background: rgba(255, 255, 255, 0.12); color: #ffffff; }
-
-.taxprep-category-name {
-  flex: 1;
-  min-width: 0;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 14.5px;
-  font-weight: 650;
-  color: #ffffff;
-  font-family: inherit;
-}
-
-.taxprep-category-name:hover,
-.taxprep-category-name:focus {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.taxprep-items {
-  padding: 10px 20px 16px 20px;
-}
-
-.taxprep-item-row {
-  display: grid;
-  grid-template-columns: 20px 1.4fr 1fr 30px;
-  gap: 10px;
-  align-items: center;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--slate-100);
-}
-
-.taxprep-item-row:last-of-type { border-bottom: none; }
-
-.taxprep-item-checkbox {
-  width: 17px;
-  height: 17px;
-  cursor: pointer;
-  accent-color: var(--accent);
-}
-
-.taxprep-item-label,
-.taxprep-item-note {
-  border: 1px solid var(--slate-200);
-  border-radius: 6px;
-  background: var(--paper);
-  padding: 7px 10px;
-  font-size: 13.5px;
-  font-family: inherit;
-  color: var(--navy-950);
-}
-
-.taxprep-item-note {
-  color: var(--slate-600);
-}
-
-.taxprep-item-row.have .taxprep-item-label {
-  color: var(--slate-400);
-  text-decoration: line-through;
-  background: var(--slate-100);
-}
-
-.taxprep-item-row.have .taxprep-item-checkbox { accent-color: var(--green); }
-
-@media (max-width: 720px) {
-  .taxprep-item-row { grid-template-columns: 20px 1fr 30px; }
-  .taxprep-item-note { grid-column: 2 / 3; }
 }

@@ -45,7 +45,6 @@
       <button class="tab-btn" data-tab="trends">Trends</button>
       <button class="tab-btn" data-tab="tsp">401K/TSP Projection</button>
       <button class="tab-btn" data-tab="accounts">Accounts</button>
-      <button class="tab-btn" data-tab="taxprep">Tax Prep</button>
     </nav>
   </div>
 </header>
@@ -191,42 +190,111 @@
   <!-- 401K/TSP -->
   <section class="panel" id="panel-tsp">
     <div class="tsp-top-row">
-      <div class="card narrow">
-        <h2>401K/TSP Projection</h2>
-        <p class="card-hint">Enter your current 401K/TSP balance, any ongoing monthly contribution, and the year you plan to retire. We'll project forward to that date &mdash; and 5 years on either side of it &mdash; compounding annually across three scenarios: a conservative, expected, and optimistic annual return. This is separate from your monthly budget above.</p>
+      <div class="tsp-top-col">
+        <div class="card narrow">
+          <h2>401K/TSP Projection</h2>
+          <p class="card-hint">Enter your current 401K/TSP balance, any ongoing monthly contribution, and the year you plan to retire. We'll project forward to that date &mdash; and 5 years on either side of it &mdash; compounding annually across three scenarios: a conservative, expected, and optimistic annual return. This is separate from your monthly budget above.</p>
 
-        <div class="form-row">
-          <label for="input-tsp-balance">Current 401K/TSP Balance</label>
-          <div class="input-prefix">
-            <span>$</span>
-            <input type="number" id="input-tsp-balance" min="0" step="100" placeholder="0.00">
+          <div class="form-row">
+            <label for="input-tsp-balance">Current 401K/TSP Balance</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="input-tsp-balance" min="0" step="100" placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="input-tsp-contribution">Monthly Contribution</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="input-tsp-contribution" min="0" step="10" placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label for="input-tsp-retirement-year">Projected Retirement Year</label>
+            <input type="number" id="input-tsp-retirement-year" min="1900" max="2200" step="1">
+            <p class="field-note" id="tsp-years-away-note"></p>
           </div>
         </div>
 
-        <div class="form-row">
-          <label for="input-tsp-contribution">Monthly Contribution</label>
-          <div class="input-prefix">
-            <span>$</span>
-            <input type="number" id="input-tsp-contribution" min="0" step="10" placeholder="0.00">
+        <div class="card narrow">
+          <h2>Service &amp; Salary</h2>
+          <p class="card-hint">For your FERS pension estimate below. Years of service runs from your Service Computation Date to the Projected Retirement Year above, so the two stay in sync automatically.</p>
+          <div class="form-row">
+            <label for="input-fers-scd">Service Computation Date</label>
+            <input type="date" id="input-fers-scd">
           </div>
+
+          <div class="form-row">
+            <label for="input-fers-high3">High-3 Salary Estimate</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="input-fers-high3" min="0" step="500" placeholder="0.00">
+            </div>
+            <p class="field-note" id="fers-years-service-note"></p>
+          </div>
+
+          <label class="checkbox-option-row">
+            <input type="checkbox" id="input-fers-enhanced-eligible">
+            <span>I'll be age 62+ with 20+ years of service at retirement (1.1% enhanced multiplier)</span>
+          </label>
+          <p class="field-note">Otherwise the standard 1% multiplier applies. This only affects the "Enhanced" row/line further down and the summary box here if checked &mdash; leave unchecked if unsure.</p>
         </div>
 
-        <div class="form-row">
-          <label for="input-tsp-retirement-year">Projected Retirement Year</label>
-          <input type="number" id="input-tsp-retirement-year" min="1900" max="2200" step="1">
-          <p class="field-note" id="tsp-years-away-note"></p>
+        <div class="card narrow">
+          <h2>Social Security</h2>
+          <p class="card-hint">Enter your estimated monthly benefit at Full Retirement Age from your Social Security statement (ssa.gov/myaccount), and the age you actually plan to claim. Claiming before Full Retirement Age reduces it; waiting past it (up to 70) increases it &mdash; using Social Security's standard adjustment rules.</p>
+          <div class="form-row">
+            <label for="input-ss-monthly-fra">Monthly Benefit at Full Retirement Age</label>
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" id="input-ss-monthly-fra" min="0" step="10" placeholder="0.00">
+            </div>
+          </div>
+          <div class="form-row">
+            <label for="input-ss-fra">Full Retirement Age</label>
+            <input type="number" id="input-ss-fra" min="65" max="67" step="1">
+          </div>
+          <div class="form-row">
+            <label for="input-ss-claim-age">Planned Claiming Age</label>
+            <input type="number" id="input-ss-claim-age" min="62" max="70" step="1">
+          </div>
         </div>
       </div>
 
-      <div class="card narrow tsp-burn-card">
-        <h2>Annual Income on Retirement</h2>
-        <p class="card-hint">The annual income a withdrawal rate would generate from your projected 401K/TSP balance at your target retirement year, under the Expected (10%) growth scenario. 4% is a common rule-of-thumb safe withdrawal rate &mdash; drag the slider to try others.</p>
-        <div class="tsp-slider-row">
-          <input type="range" id="input-tsp-withdrawal-rate" min="0" max="100" step="0.5" value="4">
-          <span class="tsp-slider-value" id="tsp-withdrawal-rate-display">4.0%</span>
+      <div class="tsp-top-col">
+        <div class="card narrow tsp-burn-card">
+          <h2>Annual Income from TSP/401k</h2>
+          <p class="card-hint">The annual income a withdrawal rate would generate from your projected 401K/TSP balance at your target retirement year, under the Expected (10%) growth scenario. 4% is a common rule-of-thumb safe withdrawal rate &mdash; drag the slider to try others.</p>
+          <div class="tsp-slider-row">
+            <input type="range" id="input-tsp-withdrawal-rate" min="0" max="100" step="0.5" value="4">
+            <span class="tsp-slider-value" id="tsp-withdrawal-rate-display">4.0%</span>
+          </div>
+          <span class="summary-value tsp-burn-value" id="tsp-burn-value">$0.00</span>
+          <p class="field-note" id="tsp-burn-note"></p>
         </div>
-        <span class="summary-value tsp-burn-value" id="tsp-burn-value">$0.00</span>
-        <p class="field-note" id="tsp-burn-note"></p>
+
+        <div class="card narrow tsp-burn-card">
+          <h2>Estimated Annual Pension</h2>
+          <p class="card-hint">Your FERS pension, at your target retirement year, using the multiplier selected in Service &amp; Salary.</p>
+          <span class="summary-value tsp-burn-value" id="fers-pension-value">$0.00</span>
+          <p class="field-note" id="fers-pension-note"></p>
+        </div>
+
+        <div class="card narrow tsp-burn-card">
+          <h2>Estimated Annual Social Security</h2>
+          <p class="card-hint">Your Full Retirement Age benefit, adjusted for the claiming age set in Social Security.</p>
+          <span class="summary-value tsp-burn-value" id="ss-annual-value">$0.00</span>
+          <p class="field-note" id="ss-annual-note"></p>
+        </div>
+
+        <div class="card narrow tsp-burn-card">
+          <h2>Total Income in Retirement</h2>
+          <p class="card-hint">Annual income from TSP/401k, your estimated FERS pension, and Social Security, combined.</p>
+          <span class="summary-value tsp-burn-value" id="total-retirement-income-value">$0.00</span>
+          <p class="field-note" id="total-retirement-income-note"></p>
+        </div>
       </div>
     </div>
 
@@ -276,27 +344,57 @@
     </div>
 
     <div class="card">
-      <div class="tsp-table-header">
-        <h2>Year-by-Year Detail</h2>
-        <select id="tsp-rate-select">
-          <option value="low">Low (8%)</option>
-          <option value="mid" selected>Expected (10%)</option>
-          <option value="high">High (12%)</option>
-        </select>
+      <h2>Retirement Burn-Down</h2>
+      <p class="card-hint">Starting from your projected balance at your target retirement year (Expected 10% growth), this withdraws the annual income amount shown above at the start of each year, then grows whatever's left at the conservative rate below - a more realistic stand-in for a retirement portfolio shifted toward bonds (like the TSP's G/F Funds) instead of the stock-heavy 10% assumption used while you're still working. Shows how long that balance lasts at the withdrawal rate you chose above.</p>
+      <div class="tsp-slider-row">
+        <input type="range" id="input-tsp-retirement-growth-rate" min="0" max="10" step="0.5" value="4.5">
+        <span class="tsp-slider-value" id="tsp-retirement-growth-rate-display">4.5%</span>
       </div>
-      <table class="tracker-table">
+      <canvas id="chart-tsp-burndown" width="900" height="360"></canvas>
+      <p class="field-note" id="tsp-burndown-note"></p>
+    </div>
+
+    <div class="card">
+      <h2>FERS Pension Estimate</h2>
+      <p class="card-hint">A rough estimate of your FERS Basic Annuity (just the pension piece - separate from Social Security and the 401K/TSP above). Formula: High-3 average salary &times; years of creditable service &times; a multiplier.</p>
+    </div>
+
+    <div class="card">
+      <h2>Estimated Pension &mdash; 5 Years Early / On Target / 5 Years Late</h2>
+      <p class="card-hint">Standard (1%) vs. Enhanced (1.1%, age 62+ with 20+ years) multiplier, compared at three possible retirement dates.</p>
+      <table class="tracker-table" id="fers-milestone-table">
         <thead>
-          <tr><th>Year</th><th>Starting Balance</th><th>Contributions</th><th>Growth</th><th>Ending Balance</th></tr>
+          <tr>
+            <th>Multiplier</th>
+            <th id="fers-milestone-early-label">5 Years Early</th>
+            <th id="fers-milestone-target-label">Target Retirement</th>
+            <th id="fers-milestone-late-label">5 Years Late</th>
+          </tr>
         </thead>
-        <tbody id="tsp-table-body"></tbody>
+        <tbody>
+          <tr>
+            <td><span class="milestone-rate-tag scenario-low">Standard (1%)</span></td>
+            <td id="fers-milestone-standard-early">$0.00</td>
+            <td id="fers-milestone-standard-target">$0.00</td>
+            <td id="fers-milestone-standard-late">$0.00</td>
+          </tr>
+          <tr>
+            <td><span class="milestone-rate-tag scenario-high">Enhanced (1.1%)</span></td>
+            <td id="fers-milestone-enhanced-early">$0.00</td>
+            <td id="fers-milestone-enhanced-target">$0.00</td>
+            <td id="fers-milestone-enhanced-late">$0.00</td>
+          </tr>
+        </tbody>
       </table>
     </div>
 
     <div class="card">
-      <h2>Retirement Burn-Down</h2>
-      <p class="card-hint">Starting from your projected balance at your target retirement year (Expected 10% growth), this assumes that balance keeps compounding at 10% a year while you withdraw the annual income amount shown above, every year. Shows how long that balance lasts at the withdrawal rate you chose above.</p>
-      <canvas id="chart-tsp-burndown" width="900" height="360"></canvas>
-      <p class="field-note" id="tsp-burndown-note"></p>
+      <h2>Projected Pension by Retirement Year</h2>
+      <canvas id="chart-fers" width="900" height="360"></canvas>
+      <div class="legend">
+        <span class="legend-item"><i class="swatch swatch-low"></i>Standard (1%)</span>
+        <span class="legend-item"><i class="swatch swatch-high"></i>Enhanced (1.1%)</span>
+      </div>
     </div>
   </section>
 
@@ -307,96 +405,6 @@
       <p class="card-hint">Keep track of the sites and services you use &mdash; name, web address, username, password, cost, and any notes worth remembering. This isn't tied to a specific month. Accounts collapse down to just their name; click a name to expand it. The list stays sorted alphabetically. Click "Show" next to a password to reveal it while editing.</p>
       <div id="accounts-list"></div>
       <button type="button" id="add-account-btn" class="add-item-btn">+ Add Account</button>
-    </div>
-  </section>
-
-  <!-- TAX PREP -->
-  <section class="panel" id="panel-taxprep">
-    <div class="card">
-      <h2>Tax Prep</h2>
-      <p class="card-hint">A running checklist of what to have on hand at tax time, plus the key numbers your tax preparer (or you, if you're doing it yourself) will ask for first. Isn't tied to a specific month - check items off as documents come in, and reset the checklist for a new year with "Start New Tax Year" below. Nothing here is filed or sent anywhere; it's just a personal organizer.</p>
-      <div class="form-row">
-        <label for="taxprep-year">Tax Year</label>
-        <input type="number" id="taxprep-year" step="1" placeholder="2026">
-      </div>
-      <button type="button" id="taxprep-new-year-btn" class="link-btn">Start New Tax Year (resets checklist to unchecked)</button>
-    </div>
-
-    <div class="card">
-      <h3>Filing Info</h3>
-      <p class="card-hint">The basics any preparer asks for first - keeping these current makes every year's return faster.</p>
-      <div class="taxprep-key-grid">
-        <div class="form-row">
-          <label for="taxprep-filing-status">Filing Status</label>
-          <select id="taxprep-filing-status">
-            <option value="">-- Select --</option>
-            <option value="single">Single</option>
-            <option value="mfj">Married Filing Jointly</option>
-            <option value="mfs">Married Filing Separately</option>
-            <option value="hoh">Head of Household</option>
-            <option value="qss">Qualifying Surviving Spouse</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label for="taxprep-prior-agi">Prior-Year AGI</label>
-          <div class="input-prefix">
-            <span>$</span>
-            <input type="number" id="taxprep-prior-agi" min="0" step="1" placeholder="0.00">
-          </div>
-        </div>
-        <div class="form-row">
-          <label for="taxprep-preparer-name">Preparer / CPA Name</label>
-          <input type="text" id="taxprep-preparer-name" placeholder="e.g. Jane Smith, CPA">
-        </div>
-        <div class="form-row">
-          <label for="taxprep-preparer-contact">Preparer Phone / Email</label>
-          <input type="text" id="taxprep-preparer-contact" placeholder="">
-        </div>
-      </div>
-      <div class="form-row">
-        <label for="taxprep-dependents">Dependents (name, relationship, DOB)</label>
-        <textarea id="taxprep-dependents" rows="2" placeholder="e.g. Jamie Doe, daughter, 04/12/2020"></textarea>
-      </div>
-      <h4 class="taxprep-subheading">Estimated Tax Payments Made This Year</h4>
-      <div class="taxprep-quarters-grid">
-        <div class="form-row">
-          <label for="taxprep-est-q1">Q1</label>
-          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q1" min="0" step="1" placeholder="0.00"></div>
-        </div>
-        <div class="form-row">
-          <label for="taxprep-est-q2">Q2</label>
-          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q2" min="0" step="1" placeholder="0.00"></div>
-        </div>
-        <div class="form-row">
-          <label for="taxprep-est-q3">Q3</label>
-          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q3" min="0" step="1" placeholder="0.00"></div>
-        </div>
-        <div class="form-row">
-          <label for="taxprep-est-q4">Q4</label>
-          <div class="input-prefix"><span>$</span><input type="number" id="taxprep-est-q4" min="0" step="1" placeholder="0.00"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>Life Events This Year</h3>
-      <p class="card-hint">Any of these can change your filing status, deductions, or withholding needs - worth flagging for your preparer even if you're not sure they matter.</p>
-      <textarea id="taxprep-life-events" rows="3" placeholder="e.g. Bought a house in June, started a side business, had a second child in October..."></textarea>
-    </div>
-
-    <div class="card">
-      <div class="taxprep-checklist-header">
-        <h3>Document Checklist</h3>
-        <span class="taxprep-progress" id="taxprep-progress"></span>
-      </div>
-      <p class="card-hint">Grouped by category - check items off as you gather them, add a note (e.g. "waiting on employer"), or add/remove items and whole categories to match your situation. Nothing here applies to everyone; delete what doesn't.</p>
-      <div id="taxprep-categories-list"></div>
-      <button type="button" id="add-taxprep-category-btn" class="add-item-btn">+ Add Category</button>
-    </div>
-
-    <div class="card">
-      <h3>Notes for Your CPA / Preparer</h3>
-      <textarea id="taxprep-notes" rows="4" placeholder="Anything else worth mentioning - questions to ask, things that felt off on last year's return, etc."></textarea>
     </div>
   </section>
 

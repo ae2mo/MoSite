@@ -257,6 +257,10 @@
           var a = plan[day][slot];
           var assignedId = a && typeof a === "object" ? a.mealId : a;
           if (assignedId === mealId) plan[day][slot] = null;
+          var sides = plan[day].sides && plan[day].sides[slot];
+          if (Array.isArray(sides)) {
+            plan[day].sides[slot] = sides.filter(function (s) { return !s || s.mealId !== mealId; });
+          }
         });
       });
     });
@@ -398,6 +402,23 @@
     header.appendChild(expandBtn);
     header.appendChild(starBtn);
     header.appendChild(nameBtn);
+
+    var sideLabel = document.createElement("label");
+    sideLabel.className = "side-dish-toggle" + (meal.sideDish ? " on" : "");
+    sideLabel.title = "Side dishes are offered under “+ Add side dish” on the Weekly Plan";
+    var sideCheck = document.createElement("input");
+    sideCheck.type = "checkbox";
+    sideCheck.checked = !!meal.sideDish;
+    sideCheck.addEventListener("change", function () {
+      meal.sideDish = sideCheck.checked;
+      sideLabel.classList.toggle("on", sideCheck.checked);
+      renderPlanStructure();
+      scheduleSave();
+    });
+    sideLabel.appendChild(sideCheck);
+    sideLabel.appendChild(document.createTextNode("Side dish"));
+    header.appendChild(sideLabel);
+
     header.appendChild(countSpan);
     header.appendChild(removeBtn);
     card.appendChild(header);
@@ -427,13 +448,13 @@
       servingsRow.className = "meal-field-row";
       var servingsLabel = document.createElement("span");
       servingsLabel.className = "account-field-label";
-      servingsLabel.textContent = "Default Servings";
+      servingsLabel.textContent = "Servings this recipe makes";
       var servingsField = document.createElement("input");
       servingsField.type = "number";
       servingsField.min = "0.5";
       servingsField.step = "0.5";
       servingsField.value = meal.servings || 1;
-      servingsField.title = "How many servings this recipe naturally makes - assigning it to the Weekly Plan starts at this many, then you can adjust per day.";
+      servingsField.title = "For reference - how many servings one batch makes. On the Weekly Plan you pick 1x, 2x or 3x batches.";
       servingsField.addEventListener("input", function () {
         var val = parseFloat(servingsField.value);
         meal.servings = val > 0 ? val : 1;
@@ -681,107 +702,192 @@
     return { lunch: null, dinner: null };
   }
 
-  // Each slot holds either null (nothing assigned) or {mealId, servings}.
-  // Older saves stored a bare meal id number - normalized here into the
-  // {mealId, servings: 1} shape so everything downstream can assume the
-  // object form. Runs every time a week is touched, not just once, same
-  // self-healing pattern as the Budget app's schema backfills.
+  // Each slot holds either null (nothing assigned) or {mealId, multiplier}:
+  // how many batches of the recipe to make (1x, 2x, 3x). The recipe's
+  // ingredient amounts are multiplied by it on the shopping list.
+  //
+  // Older saves stored {mealId, servings} (servings relative to the
+  // recipe's own default servings), and before that a bare meal id. Both
+  // are converted here into the same multiplier the shopping list was
+  // already using (servings / recipe servings), so existing plans keep
+  // producing exactly the same amounts. Runs every time a week is touched.
   function normalizeAssignment(value) {
     if (value == null) return null;
-    if (typeof value === "number") return { mealId: value, servings: 1 };
-    if (typeof value === "object" && value.mealId != null) {
-      var servings = Number(value.servings);
-      return { mealId: value.mealId, servings: servings > 0 ? servings : 1 };
+    if (typeof value === "number") return { mealId: value, multiplier: 1 };
+    if (typeof value !== "object" || value.mealId == null) return null;
+    var mult = Number(value.multiplier);
+    if (!(mult > 0)) {
+      var meal = mealById(value.mealId);
+      var base = meal && Number(meal.servings) > 0 ? Number(meal.servings) : 1;
+      var serv = Number(value.servings);
+      mult = serv > 0 ? Math.round((serv / base) * 100) / 100 : 1;
+      if (!(mult > 0)) mult = 1;
     }
-    return null;
+    return { mealId: value.mealId, multiplier: mult };
   }
 
+  // Side dishes live next to each slot: plan[day].sides = {lunch: [...], dinner: [...]},
+  // each entry the same {mealId, multiplier} shape as a main meal.
   function ensureWeekPlan(weekKey) {
     if (!state.plans[weekKey]) state.plans[weekKey] = {};
     var plan = state.plans[weekKey];
     DAYS.forEach(function (day) {
       if (!plan[day]) plan[day] = buildEmptyDayPlan();
+      if (!plan[day].sides || typeof plan[day].sides !== "object") plan[day].sides = {};
       SLOTS.forEach(function (slot) {
         plan[day][slot] = normalizeAssignment(plan[day][slot]);
+        var list = Array.isArray(plan[day].sides[slot]) ? plan[day].sides[slot] : [];
+        plan[day].sides[slot] = list.map(normalizeAssignment).filter(Boolean);
       });
     });
     return plan;
+  }
+
+  // Every assignment in a slot - the main meal first, then its sides.
+  function slotAssignments(plan, day, slot) {
+    var out = [];
+    if (plan[day][slot]) out.push({ assignment: plan[day][slot], side: false });
+    ((plan[day].sides || {})[slot] || []).forEach(function (a) { out.push({ assignment: a, side: true }); });
+    return out;
+  }
+
+  var MULTIPLIER_CHOICES = [1, 2, 3];
+
+  function buildMultiplierSelect(current, onChange) {
+    var sel = document.createElement("select");
+    sel.className = "mult-select";
+    sel.title = "How many times to make this recipe - multiplies its ingredients on the shopping list";
+    var choices = MULTIPLIER_CHOICES.slice();
+    if (choices.indexOf(current) === -1) {
+      choices.push(current); // keeps an older non-whole amount (e.g. 1.5x) intact
+      choices.sort(function (a, b) { return a - b; });
+    }
+    choices.forEach(function (v) {
+      var opt = document.createElement("option");
+      opt.value = String(v);
+      opt.textContent = fmtQty(v) + "×";
+      if (v === current) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener("change", function () { onChange(Number(sel.value) || 1); });
+    return sel;
+  }
+
+  // Meal picker. Recipes marked "Side dish" are grouped separately so the
+  // main pick and the side pick each show the most likely choices first,
+  // but nothing is ever hidden.
+  function buildMealSelect(selectedId, placeholder, sidesFirst) {
+    var select = document.createElement("select");
+    var noneOpt = document.createElement("option");
+    noneOpt.value = "";
+    noneOpt.textContent = placeholder;
+    select.appendChild(noneOpt);
+
+    var sides = state.meals.filter(function (m) { return m.sideDish; });
+    var mains = state.meals.filter(function (m) { return !m.sideDish; });
+
+    function addOption(parent, meal) {
+      var opt = document.createElement("option");
+      opt.value = String(meal.id);
+      opt.textContent = meal.name || "Untitled Meal";
+      if (selectedId === meal.id) opt.selected = true;
+      parent.appendChild(opt);
+    }
+    function addGroup(label, list) {
+      if (!list.length) return;
+      var group = document.createElement("optgroup");
+      group.label = label;
+      list.forEach(function (m) { addOption(group, m); });
+      select.appendChild(group);
+    }
+
+    if (!sides.length) {
+      state.meals.forEach(function (m) { addOption(select, m); });
+    } else if (sidesFirst) {
+      addGroup("Side dishes", sides);
+      addGroup("Other meals", mains);
+    } else {
+      addGroup("Meals", mains);
+      addGroup("Side dishes", sides);
+    }
+    return select;
   }
 
   function buildPlanSlotCell(day, slot, plan) {
     var wrap = document.createElement("div");
     wrap.className = "plan-slot";
 
+    // main meal + its multiplier
+    var mainRow = document.createElement("div");
+    mainRow.className = "plan-slot-row";
     var assignment = plan[day][slot];
-
-    var select = document.createElement("select");
-    var noneOpt = document.createElement("option");
-    noneOpt.value = "";
-    noneOpt.textContent = "—";
-    select.appendChild(noneOpt);
-
-    state.meals.forEach(function (meal) {
-      var opt = document.createElement("option");
-      opt.value = String(meal.id);
-      opt.textContent = meal.name || "Untitled Meal";
-      if (assignment && assignment.mealId === meal.id) opt.selected = true;
-      select.appendChild(opt);
-    });
-
-    var servingsWrap = document.createElement("div");
-    servingsWrap.className = "servings-wrap";
-    servingsWrap.hidden = !assignment;
-
-    var xLabel = document.createElement("span");
-    xLabel.textContent = "×";
-
-    var servingsInput = document.createElement("input");
-    servingsInput.type = "number";
-    servingsInput.min = "0.5";
-    servingsInput.step = "0.5";
-    servingsInput.className = "servings-input";
-    servingsInput.title = "Servings - scales this meal's ingredient amounts on the shopping list";
-    servingsInput.value = assignment ? assignment.servings : 1;
+    var select = buildMealSelect(assignment ? assignment.mealId : null, "—", false);
+    var multWrap = document.createElement("div");
+    multWrap.className = "servings-wrap";
+    multWrap.hidden = !assignment;
+    multWrap.appendChild(buildMultiplierSelect(assignment ? assignment.multiplier : 1, function (v) {
+      if (plan[day][slot]) { plan[day][slot].multiplier = v; scheduleSave(); }
+    }));
 
     select.addEventListener("change", function () {
       if (!select.value) {
         plan[day][slot] = null;
-        servingsWrap.hidden = true;
       } else {
         var mealId = Number(select.value);
-        var newServings;
-        if (plan[day][slot] && plan[day][slot].mealId === mealId) {
-          // Re-selecting the same recipe that was already here - keep
-          // whatever servings you'd already set for this day, don't reset it.
-          newServings = plan[day][slot].servings;
-        } else {
-          // Switching to a different recipe - start from THAT recipe's own
-          // default serving size (set on the Meals tab, or detected at
-          // import time), not whatever the previous recipe in this slot
-          // happened to be scaled to.
-          var selectedMeal = state.meals.filter(function (m) { return m.id === mealId; })[0];
-          newServings = selectedMeal && Number(selectedMeal.servings) > 0 ? Number(selectedMeal.servings) : 1;
-        }
-        plan[day][slot] = { mealId: mealId, servings: newServings };
-        servingsInput.value = newServings;
-        servingsWrap.hidden = false;
+        var keep = plan[day][slot] && plan[day][slot].mealId === mealId ? plan[day][slot].multiplier : 1;
+        plan[day][slot] = { mealId: mealId, multiplier: keep };
       }
       scheduleSave();
+      renderPlanStructure();
     });
 
-    servingsInput.addEventListener("input", function () {
-      var val = parseFloat(servingsInput.value);
-      if (!val || val <= 0) val = 1;
-      if (plan[day][slot]) {
-        plan[day][slot].servings = val;
+    mainRow.appendChild(select);
+    mainRow.appendChild(multWrap);
+    wrap.appendChild(mainRow);
+
+    // side dishes
+    var sides = plan[day].sides[slot];
+    sides.forEach(function (side, idx) {
+      var row = document.createElement("div");
+      row.className = "plan-slot-row plan-side-row";
+      var tag = document.createElement("span");
+      tag.className = "side-tag";
+      tag.textContent = "Side";
+      var sideSelect = buildMealSelect(side.mealId, "— remove —", true);
+      sideSelect.addEventListener("change", function () {
+        if (!sideSelect.value) sides.splice(idx, 1);
+        else side.mealId = Number(sideSelect.value);
         scheduleSave();
-      }
+        renderPlanStructure();
+      });
+      var removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "remove-item-btn";
+      removeBtn.innerHTML = "&times;";
+      removeBtn.title = "Remove this side dish";
+      removeBtn.addEventListener("click", function () {
+        sides.splice(idx, 1);
+        scheduleSave();
+        renderPlanStructure();
+      });
+      row.appendChild(tag);
+      row.appendChild(sideSelect);
+      row.appendChild(buildMultiplierSelect(side.multiplier, function (v) { side.multiplier = v; scheduleSave(); }));
+      row.appendChild(removeBtn);
+      wrap.appendChild(row);
     });
 
-    servingsWrap.appendChild(xLabel);
-    servingsWrap.appendChild(servingsInput);
-    wrap.appendChild(select);
-    wrap.appendChild(servingsWrap);
+    // "+ Add side dish" picker - choosing a recipe adds it straight away
+    var addSide = buildMealSelect(null, "+ Add side dish", true);
+    addSide.className = "add-side-select";
+    addSide.title = "Add a side dish to " + day + " " + slot;
+    addSide.addEventListener("change", function () {
+      if (!addSide.value) return;
+      sides.push({ mealId: Number(addSide.value), multiplier: 1 });
+      scheduleSave();
+      renderPlanStructure();
+    });
+    wrap.appendChild(addSide);
     return wrap;
   }
 
@@ -899,49 +1005,146 @@
     return (name || "").trim().toLowerCase() + "|" + (unit || "").trim().toLowerCase();
   }
 
+  // ----- merging the same item across recipes -----
+  // Recipes word the same thing differently ("3 whole Carrots" / "2 carrots,
+  // (peeled and sliced...)", "Ground Beef" / "lean ground beef"). To fold
+  // those into one line the name is reduced to a matching key (prep notes and
+  // simple descriptors dropped, last word made singular) and units are
+  // grouped into families (weights, volumes, plain counts) so quantities can
+  // be added together. The text shown is a cleaned version of the first
+  // wording seen - this never changes the stored recipes.
+
+  var NAME_DESCRIPTORS = /^(?:(?:fresh|freshly|lean|extra[- ]lean|large|medium|small|big|boneless|skinless|chopped|diced|minced|sliced|peeled|shredded|grated|ripe|raw|finely|roughly|thinly|coarsely)\s+)+/i;
+  var NAME_TRAILING_PREP = /\s+(?:peeled|chopped|diced|minced|sliced|shredded|grated|halved|quartered|cubed|trimmed|rinsed|drained|divided|optional|melted|softened|thawed|beaten)(?:\s+and\s+\w+)*$/i;
+
+  function cleanIngredientName(name) {
+    var s = String(name || "");
+    s = s.replace(/\([^)]*\)?/g, " ");       // (peeled and sliced...) - including an unclosed one
+    s = s.split(",")[0];                      // ", cut into chunks"
+    s = s.split(/\s+[-–—]\s+/)[0];  // " - optional"
+    s = s.replace(/\s+/g, " ").trim();
+    s = s.replace(NAME_DESCRIPTORS, "").replace(NAME_TRAILING_PREP, "").trim();
+    return s;
+  }
+
+  function singularWord(w) {
+    if (w.length <= 3) return w;
+    if (/(ss|us|is)$/.test(w)) return w;
+    if (/ies$/.test(w)) return w.slice(0, -3) + "y";
+    if (/(oes|ches|shes|xes|sses)$/.test(w)) return w.slice(0, -2);
+    if (/s$/.test(w)) return w.slice(0, -1);
+    return w;
+  }
+
+  function ingredientMatchKey(cleaned) {
+    var words = cleaned.toLowerCase().replace(/[^a-z0-9'\s-]/g, " ").split(/\s+/).filter(Boolean);
+    if (!words.length) return "";
+    words[words.length - 1] = singularWord(words[words.length - 1]);
+    return words.join(" ");
+  }
+
+  // family + size relative to the family's smallest unit (oz / tsp).
+  var UNIT_FAMILIES = {
+    oz: ["weight", 1], ounce: ["weight", 1], ounces: ["weight", 1],
+    lb: ["weight", 16], lbs: ["weight", 16], pound: ["weight", 16], pounds: ["weight", 16],
+    tsp: ["volume", 1], tsps: ["volume", 1], teaspoon: ["volume", 1], teaspoons: ["volume", 1],
+    tbsp: ["volume", 3], tbsps: ["volume", 3], tbs: ["volume", 3], tablespoon: ["volume", 3], tablespoons: ["volume", 3],
+    cup: ["volume", 48], cups: ["volume", 48],
+    pt: ["volume", 96], pint: ["volume", 96], pints: ["volume", 96],
+    qt: ["volume", 192], quart: ["volume", 192], quarts: ["volume", 192],
+    "": ["count", 1], whole: ["count", 1], large: ["count", 1], medium: ["count", 1], small: ["count", 1]
+  };
+
+  var UNIT_PLURALS = {
+    lb: "lbs", cup: "cups", clove: "cloves", can: "cans", slice: "slices", package: "packages",
+    pkg: "pkgs", bunch: "bunches", head: "heads", stalk: "stalks", sprig: "sprigs",
+    quart: "quarts", pint: "pints", pinch: "pinches", dash: "dashes"
+  };
+
+  function unitFamily(unit) {
+    var u = String(unit || "").trim().toLowerCase().replace(/\.$/, "");
+    if (UNIT_FAMILIES.hasOwnProperty(u)) return { family: UNIT_FAMILIES[u][0], size: UNIT_FAMILIES[u][1], raw: u };
+    var single = singularWord(u);
+    return { family: "other:" + single, size: 1, raw: single };
+  }
+
+  function pluralUnit(unit, qty) {
+    return qty > 1 && UNIT_PLURALS[unit] ? UNIT_PLURALS[unit] : unit;
+  }
+
+  // Turns the summed base quantity (oz / tsp / plain count) back into a
+  // friendly quantity + unit.
+  function displayQuantity(family, baseQty, rawUnit) {
+    var q, unit;
+    if (family === "weight") {
+      if (baseQty >= 16) { q = baseQty / 16; unit = "lb"; } else { q = baseQty; unit = "oz"; }
+    } else if (family === "volume") {
+      if (baseQty >= 48) { q = baseQty / 48; unit = "cup"; }
+      else if (baseQty >= 3) { q = baseQty / 3; unit = "tbsp"; }
+      else { q = baseQty; unit = "tsp"; }
+    } else if (family === "count") {
+      q = baseQty; unit = "";
+    } else {
+      q = baseQty; unit = rawUnit;
+    }
+    q = Math.round(q * 100) / 100;
+    return { quantity: q, unit: pluralUnit(unit, q) };
+  }
+
+  function formatLineText(line) {
+    var qtyUnit = (fmtQty(line.quantity) + " " + line.unit).trim();
+    return (qtyUnit ? qtyUnit + " " : "") + line.name;
+  }
+
   function buildShoppingLines(weekKey) {
     var plan = ensureWeekPlan(weekKey);
     var lines = {};
 
     DAYS.forEach(function (day) {
       SLOTS.forEach(function (slot) {
-        var assignment = plan[day][slot];
+       slotAssignments(plan, day, slot).forEach(function (entry) {
+        var assignment = entry.assignment;
         if (!assignment || assignment.mealId == null) return;
         var meal = mealById(assignment.mealId);
         if (!meal) return;
-        // Ingredient quantities are stored for this meal's own default
-        // serving count (like a printed recipe: "serves 4, needs 2 lbs...").
-        // Scale relative to that base, not the raw assigned-servings number,
-        // so a meal assigned at its own default comes out 1:1 and only
-        // actually scaling away from that default changes the amounts.
-        var baseServings = Number(meal.servings) > 0 ? Number(meal.servings) : 1;
-        var servingsCount = assignment.servings || baseServings;
-        var scaleRatio = servingsCount / baseServings;
-        var mealLabel = meal.name + (servingsCount !== baseServings ? " (" + fmtQty(servingsCount) + "×)" : "");
+        // Ingredient quantities are stored as the recipe lists them; the
+        // 1x/2x/3x picked on the Weekly Plan multiplies them.
+        var scaleRatio = Number(assignment.multiplier) > 0 ? Number(assignment.multiplier) : 1;
+        var mealLabel = meal.name + (scaleRatio !== 1 ? " (" + fmtQty(scaleRatio) + "×)" : "");
 
         meal.ingredients.forEach(function (ing) {
-          var name = (ing.name || "").trim();
-          if (!name) return;
-          var unit = (ing.unit || "").trim();
-          var key = normalizeKey(name, unit);
+          var rawName = (ing.name || "").trim();
+          if (!rawName) return;
+          var cleaned = cleanIngredientName(rawName) || rawName;
+          var nameKey = ingredientMatchKey(cleaned) || rawName.toLowerCase();
+          var uf = unitFamily(ing.unit);
+          var key = nameKey + "|" + uf.family;
 
           if (!lines[key]) {
             lines[key] = {
               key: key,
-              name: name,
-              unit: unit,
+              name: cleaned.charAt(0).toUpperCase() + cleaned.slice(1),
+              family: uf.family,
+              rawUnit: uf.raw,
               category: ing.category || "Other",
-              quantity: 0,
+              baseQty: 0,
               meals: []
             };
           }
-          lines[key].quantity += (Number(ing.quantity) || 0) * scaleRatio;
+          lines[key].baseQty += (Number(ing.quantity) || 0) * uf.size * scaleRatio;
           if (lines[key].meals.indexOf(mealLabel) === -1) lines[key].meals.push(mealLabel);
         });
+       });
       });
     });
 
-    return Object.keys(lines).map(function (k) { return lines[k]; });
+    return Object.keys(lines).map(function (k) {
+      var line = lines[k];
+      var d = displayQuantity(line.family, line.baseQty, line.rawUnit);
+      line.quantity = d.quantity;
+      line.unit = d.unit;
+      return line;
+    });
   }
 
   function buildShoppingLineRow(line, sl) {
@@ -960,8 +1163,7 @@
 
     var textSpan = document.createElement("span");
     textSpan.className = "shopping-line-text";
-    var qtyUnit = (fmtQty(line.quantity) + " " + line.unit).trim();
-    textSpan.textContent = (qtyUnit ? qtyUnit + " " : "") + line.name;
+    textSpan.textContent = formatLineText(line);
 
     var mealsSpan = document.createElement("span");
     mealsSpan.className = "shopping-line-meals";
@@ -1133,8 +1335,7 @@
 
     lines.forEach(function (line) {
       if (sl.checked[line.key]) return;
-      var qtyUnit = (fmtQty(line.quantity) + " " + line.unit).trim();
-      texts.push((qtyUnit ? qtyUnit + " " : "") + line.name);
+      texts.push(formatLineText(line));
     });
 
     sl.extraItems.forEach(function (item) {

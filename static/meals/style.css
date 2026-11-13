@@ -69,7 +69,66 @@
 
 /* Weekly plan table */
 
-.plan-table td { vertical-align: middle; }
+.plan-table td { vertical-align: top; }
+
+.plan-slot { flex-direction: column; align-items: stretch !important; }
+
+.plan-slot-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-side-row { padding-left: 4px; }
+.plan-side-row select:first-of-type { flex: 1 1 auto; }
+
+.side-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--slate-400);
+  flex-shrink: 0;
+}
+
+.mult-select {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 6px 4px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--navy-950);
+  width: 58px !important;
+  flex-shrink: 0;
+}
+
+.plan-slot select.add-side-select {
+  border-style: dashed;
+  background: transparent;
+  color: var(--slate-600);
+  font-size: 12.5px;
+  padding: 5px 8px;
+  max-width: 220px;
+}
+
+/* "Side dish" checkbox on each recipe */
+.side-dish-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--slate-400);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+  padding: 3px 8px;
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+}
+.side-dish-toggle input { width: 14px; height: 14px; margin: 0; }
+.side-dish-toggle.on { color: var(--accent-dark); border-color: var(--accent); }
 
 .plan-day-label {
   font-weight: 650;
@@ -107,6 +166,8 @@
   gap: 3px;
   flex-shrink: 0;
 }
+
+.servings-wrap[hidden] { display: none; }
 
 .servings-wrap span {
   font-size: 12px;

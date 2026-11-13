@@ -91,8 +91,11 @@
 
   // ---------- account ----------
 
+  var lastAccount = null; // cached so the picks table can estimate allocations client-side
+
   function loadAccount() {
     return jsonFetch("/api/stocks/account").then(function (acct) {
+      lastAccount = acct;
       var modeEl = document.getElementById("acct-mode");
       modeEl.innerHTML = '<span class="mode-badge ' + (acct.paper ? "paper" : "live") + '">' + (acct.paper ? "PAPER" : "LIVE") + "</span>";
       document.getElementById("acct-buying-power").textContent = fmt(acct.buyingPower);
@@ -206,24 +209,45 @@
 
   // ---------- picks (last scan) ----------
 
+  // Rough client-side mirror of the server's risk-based position sizing
+  // (_position_size in stocks_engine.py), for display only - the actual
+  // order placed by Buy Top Picks is computed and scaled server-side.
+  function estimateAllocation(pick) {
+    if (!lastAccount || !lastSettings) return null;
+    var equity = Number(lastAccount.equity || lastAccount.portfolioValue) || 0;
+    var atr = Number(pick.atr14) || 0;
+    var price = Number(pick.price) || 0;
+    var stopMultiple = Number(lastSettings.stopLossAtrMultiple) || 2;
+    var riskPercent = (Number(lastSettings.riskPercent) || 1.5) / 100;
+    var maxPositionPercent = (Number(lastSettings.maxPositionPercent) || 20) / 100;
+    var stopDistance = atr > 0 ? stopMultiple * atr : price * 0.07;
+    stopDistance = Math.max(stopDistance, price * 0.01);
+    if (!stopDistance || !equity) return null;
+    var riskBased = (equity * riskPercent / stopDistance) * price;
+    return Math.max(0, Math.min(riskBased, equity * maxPositionPercent));
+  }
+
   function renderPicks(scan) {
     var tbody = document.getElementById("picks-body");
     tbody.innerHTML = "";
     if (!scan || !scan.picks || !scan.picks.length) {
-      tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Click "Scan Market" to rank candidates.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="empty-row">Click "Scan Market" to rank candidates.</td></tr>';
       document.getElementById("scan-meta").textContent = "";
       return;
     }
     scan.picks.forEach(function (p) {
       var tr = document.createElement("tr");
+      var alloc = estimateAllocation(p);
       tr.innerHTML =
         "<td><strong>" + escapeHtml(p.symbol) + "</strong></td>" +
         "<td>" + p.score.toFixed(1) + "</td>" +
         "<td>" + fmt(p.price) + "</td>" +
-        '<td class="' + (p.return20d >= 0 ? "diff-positive" : "diff-negative") + '">' + p.return20d.toFixed(1) + "%</td>" +
+        '<td class="' + (p.returnShort >= 0 ? "diff-positive" : "diff-negative") + '">' + p.returnShort.toFixed(1) + "%</td>" +
         "<td>" + p.rsi14.toFixed(1) + "</td>" +
+        "<td>" + fmt(p.ma20) + "</td>" +
         "<td>" + fmt(p.ma50) + "</td>" +
-        "<td>" + fmt(p.ma200) + "</td>";
+        "<td>" + fmt(p.atr14) + "</td>" +
+        "<td>" + (alloc != null ? fmt(alloc) : "—") + "</td>";
       tbody.appendChild(tr);
     });
     var when = new Date(scan.timestamp).toLocaleString();
@@ -232,6 +256,16 @@
       meta = "⚠ Couldn't reach Wikipedia for the full Dow/S&P 500 list — using the built-in watchlist instead. " + meta;
     }
     document.getElementById("scan-meta").textContent = meta;
+    renderRegimeBanner(scan.marketRegime);
+  }
+
+  function renderRegimeBanner(regime) {
+    var banner = document.getElementById("regime-banner");
+    var detail = document.getElementById("regime-detail");
+    if (!regime || !banner || !detail) return;
+    banner.hidden = false;
+    banner.classList.toggle("regime-caution", regime.ok === false);
+    detail.textContent = regime.detail || "";
   }
 
   // ---------- activity log ----------
@@ -423,33 +457,64 @@
 
   // ---------- settings ----------
 
+  var lastSettings = null; // cached for the picks table's client-side allocation estimate
+
   function loadSettings() {
     return jsonFetch("/api/stocks/settings").then(function (settings) {
+      lastSettings = settings;
       document.getElementById("setting-top-n").value = settings.topN;
       document.getElementById("setting-universe").value = settings.universe;
       document.getElementById("setting-min-price").value = settings.minPrice;
+      document.getElementById("setting-momentum-lookback").value = settings.momentumLookbackDays;
       document.getElementById("setting-exclude-held").checked = !!settings.excludeHeld;
+      document.getElementById("setting-market-regime").checked = settings.requireMarketRegimeFilter !== false;
+
+      document.getElementById("setting-risk-percent").value = settings.riskPercent;
+      document.getElementById("setting-max-position-percent").value = settings.maxPositionPercent;
+      document.getElementById("setting-stop-loss-atr").value = settings.stopLossAtrMultiple;
+      document.getElementById("setting-profit-trail-trigger").value = settings.profitTrailTriggerPercent;
+      document.getElementById("setting-trailing-stop-atr").value = settings.trailingStopAtrMultiple;
+      document.getElementById("setting-max-holding-days").value = settings.maxHoldingDays;
+      return settings;
     }).catch(function () {});
+  }
+
+  function saveSettingsPayload(payload, statusElId) {
+    var statusEl = document.getElementById(statusElId);
+    statusEl.textContent = "Saving…";
+    return jsonFetch("/api/stocks/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function (settings) {
+      lastSettings = settings;
+      statusEl.textContent = "Saved.";
+    }).catch(function (e) {
+      statusEl.textContent = "Failed to save: " + e.message;
+    });
   }
 
   function initSettingsForm() {
     document.getElementById("save-settings-btn").addEventListener("click", function () {
-      var payload = {
+      saveSettingsPayload({
         topN: parseInt(document.getElementById("setting-top-n").value, 10) || 10,
         universe: document.getElementById("setting-universe").value,
         minPrice: parseFloat(document.getElementById("setting-min-price").value) || 0,
-        excludeHeld: document.getElementById("setting-exclude-held").checked
-      };
-      document.getElementById("settings-status").textContent = "Saving…";
-      jsonFetch("/api/stocks/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      }).then(function () {
-        document.getElementById("settings-status").textContent = "Saved.";
-      }).catch(function (e) {
-        document.getElementById("settings-status").textContent = "Failed to save: " + e.message;
-      });
+        momentumLookbackDays: parseInt(document.getElementById("setting-momentum-lookback").value, 10) || 10,
+        excludeHeld: document.getElementById("setting-exclude-held").checked,
+        requireMarketRegimeFilter: document.getElementById("setting-market-regime").checked
+      }, "settings-status");
+    });
+
+    document.getElementById("save-strategy-settings-btn").addEventListener("click", function () {
+      saveSettingsPayload({
+        riskPercent: parseFloat(document.getElementById("setting-risk-percent").value) || 1.5,
+        maxPositionPercent: parseFloat(document.getElementById("setting-max-position-percent").value) || 20,
+        stopLossAtrMultiple: parseFloat(document.getElementById("setting-stop-loss-atr").value) || 2,
+        profitTrailTriggerPercent: parseFloat(document.getElementById("setting-profit-trail-trigger").value) || 15,
+        trailingStopAtrMultiple: parseFloat(document.getElementById("setting-trailing-stop-atr").value) || 1.5,
+        maxHoldingDays: parseInt(document.getElementById("setting-max-holding-days").value, 10) || 20
+      }, "strategy-settings-status");
     });
   }
 
@@ -479,7 +544,7 @@
     });
 
     buyBtn.addEventListener("click", function () {
-      var ok = confirm("This will place real (or paper) buy orders through your Alpaca account, split across the current top picks. Continue?");
+      var ok = confirm("This will place real (or paper) buy orders through your Alpaca account, sized per pick by its own risk (see Strategy & Risk Settings). Continue?");
       if (!ok) return;
       buyBtn.disabled = true;
       setActionStatus("Placing buy orders…");
@@ -514,11 +579,267 @@
     });
   }
 
+  // ---------- Test Settings (backtest) ----------
+
+  var lastBacktest = null;
+  var backtestTimer = null;
+
+  // Current values in both settings forms (saved or not) - what the test uses.
+  function readFormSettings() {
+    function num(id, fallback, isInt) {
+      var v = isInt ? parseInt(document.getElementById(id).value, 10) : parseFloat(document.getElementById(id).value);
+      return isFinite(v) ? v : fallback;
+    }
+    return {
+      topN: num("setting-top-n", 10, true),
+      universe: document.getElementById("setting-universe").value,
+      minPrice: num("setting-min-price", 5),
+      momentumLookbackDays: num("setting-momentum-lookback", 10, true),
+      excludeHeld: document.getElementById("setting-exclude-held").checked,
+      requireMarketRegimeFilter: document.getElementById("setting-market-regime").checked,
+      riskPercent: num("setting-risk-percent", 1.5),
+      maxPositionPercent: num("setting-max-position-percent", 20),
+      stopLossAtrMultiple: num("setting-stop-loss-atr", 2),
+      profitTrailTriggerPercent: num("setting-profit-trail-trigger", 15),
+      trailingStopAtrMultiple: num("setting-trailing-stop-atr", 1.5),
+      maxHoldingDays: num("setting-max-holding-days", 20, true)
+    };
+  }
+
+  function pctText(v) {
+    if (v == null) return "—";
+    return (v >= 0 ? "+" : "") + Number(v).toFixed(1) + "%";
+  }
+
+  function summaryCard(label, value, cls) {
+    return '<div class="summary-card"><span class="summary-label">' + escapeHtml(label) +
+      '</span><span class="summary-value' + (cls ? " " + cls : "") + '">' + escapeHtml(value) + "</span></div>";
+  }
+
+  function drawBacktestChart(canvas, curve) {
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    if (!curve || curve.length < 2) return;
+
+    var padLeft = 70, padRight = 20, padTop = 16, padBottom = 30;
+    var chartW = W - padLeft - padRight, chartH = H - padTop - padBottom;
+    var all = [];
+    curve.forEach(function (p) { all.push(p.value, p.spy); });
+    var maxVal = Math.max.apply(null, all), minVal = Math.min.apply(null, all);
+    if (maxVal === minVal) { maxVal += 1; minVal -= 1; }
+    var pad = (maxVal - minVal) * 0.05;
+    maxVal += pad; minVal -= pad;
+    var range = maxVal - minVal;
+    function x(i) { return padLeft + (i / (curve.length - 1)) * chartW; }
+    function y(v) { return padTop + chartH - ((v - minVal) / range) * chartH; }
+
+    ctx.strokeStyle = themeColor("--slate-100");
+    ctx.fillStyle = themeColor("--slate-400");
+    ctx.font = "11px sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.lineWidth = 1;
+    for (var d = 0; d <= 4; d++) {
+      var val = minVal + (range / 4) * d;
+      ctx.beginPath(); ctx.moveTo(padLeft, y(val)); ctx.lineTo(padLeft + chartW, y(val)); ctx.stroke();
+      ctx.fillText("$" + Math.round(val), padLeft - 8, y(val));
+    }
+    // $1,000 starting line
+    var base = curve[0].value >= 0 ? 1000 : 1000;
+    if (base > minVal && base < maxVal) {
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = themeColor("--slate-400");
+      ctx.beginPath(); ctx.moveTo(padLeft, y(base)); ctx.lineTo(padLeft + chartW, y(base)); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function line(key, color, width) {
+      ctx.strokeStyle = color; ctx.lineWidth = width;
+      ctx.beginPath();
+      curve.forEach(function (p, i) { if (i === 0) ctx.moveTo(x(i), y(p[key])); else ctx.lineTo(x(i), y(p[key])); });
+      ctx.stroke();
+    }
+    line("spy", "#9aa5b8", 2);
+    line("value", "#2f6fed", 2.5);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = themeColor("--slate-600");
+    ctx.fillText(curve[0].date, padLeft, padTop + chartH + 20);
+    ctx.textAlign = "right";
+    ctx.fillText(curve[curve.length - 1].date, padLeft + chartW, padTop + chartH + 20);
+  }
+
+  function renderBacktest(r) {
+    lastBacktest = r;
+    document.getElementById("backtest-result").hidden = false;
+
+    var up = r.returnPercent >= 0;
+    var beat = r.returnPercent - r.spyReturnPercent;
+    document.getElementById("backtest-summary").innerHTML =
+      summaryCard("Started with", fmt(r.startCash)) +
+      summaryCard("Ended with", fmt(r.finalValue), up ? "pos" : "neg") +
+      summaryCard("Return", pctText(r.returnPercent), up ? "pos" : "neg") +
+      summaryCard("S&P 500 buy & hold", pctText(r.spyReturnPercent) + " (" + fmt(r.spyFinalValue) + ")") +
+      summaryCard("vs. S&P 500", (beat >= 0 ? "+" : "") + beat.toFixed(1) + " pts", beat >= 0 ? "pos" : "neg") +
+      summaryCard("Worst drop", "-" + r.maxDrawdownPercent.toFixed(1) + "%", "neg") +
+      summaryCard("Closed trades", String(r.closedTrades)) +
+      summaryCard("Win rate", r.winRatePercent == null ? "—" : r.winRatePercent.toFixed(0) + "%") +
+      summaryCard("Avg win / avg loss", (r.avgWinPercent == null ? "—" : pctText(r.avgWinPercent)) + " / " + (r.avgLossPercent == null ? "—" : pctText(r.avgLossPercent))) +
+      summaryCard("Avg days held", r.avgDaysHeld == null ? "—" : String(r.avgDaysHeld)) +
+      summaryCard("Avg % invested", r.avgExposurePercent.toFixed(0) + "%") +
+      summaryCard("Days buying paused", r.pausedDays + " of " + r.days);
+
+    document.getElementById("backtest-legend").innerHTML =
+      '<span style="color:#2f6fed;font-weight:700">&#9632;</span> This strategy &nbsp; <span style="color:#9aa5b8;font-weight:700">&#9632;</span> S&amp;P 500 buy &amp; hold (SPY) &nbsp;&middot;&nbsp; ' +
+      escapeHtml(r.startDate) + " to " + escapeHtml(r.endDate) + " (" + r.days + " trading days)";
+    drawBacktestChart(document.getElementById("chart-backtest"), r.curve);
+
+    var reasons = Object.keys(r.exitReasons || {}).map(function (k) { return k + ": " + r.exitReasons[k]; });
+    document.getElementById("backtest-reasons").textContent = reasons.length ? reasons.join("  ·  ") : "No positions were closed during the test.";
+
+    var tbody = document.getElementById("backtest-trades-body");
+    tbody.innerHTML = "";
+    if (!r.recentTrades.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty-row">No closed trades.</td></tr>';
+    }
+    r.recentTrades.forEach(function (t) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td><strong>" + escapeHtml(t.symbol) + "</strong></td><td>" + escapeHtml(t.entryDate) + "</td><td>" + escapeHtml(t.exitDate) + "</td><td>" + t.days + "</td>" +
+        "<td>" + fmt(t.entryPrice) + "</td><td>" + fmt(t.exitPrice) + "</td>" +
+        '<td class="' + (t.pnl >= 0 ? "diff-positive" : "diff-negative") + '">' + pctText(t.pnlPercent) + " (" + fmt(t.pnl) + ")</td>" +
+        "<td>" + escapeHtml(t.reason) + "</td>";
+      tbody.appendChild(tr);
+    });
+
+    var obody = document.getElementById("backtest-open-body");
+    obody.innerHTML = "";
+    document.getElementById("backtest-open-title").hidden = !r.openPositions.length;
+    document.getElementById("backtest-open").hidden = !r.openPositions.length;
+    r.openPositions.forEach(function (p) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        "<td><strong>" + escapeHtml(p.symbol) + "</strong></td><td>" + escapeHtml(p.entryDate) + "</td><td>" + fmt(p.entryPrice) + "</td><td>" + fmt(p.lastPrice) + "</td><td>" + fmt(p.value) + "</td>" +
+        '<td class="' + (p.pnlPercent >= 0 ? "diff-positive" : "diff-negative") + '">' + pctText(p.pnlPercent) + "</td>";
+      obody.appendChild(tr);
+    });
+
+    var caveat = "Read this with care: a one-year replay of one set of settings is a single sample, not a forecast. It tests today's S&P 500 + Dow members, so it quietly leaves out companies that were dropped or went under (this flatters results); it assumes no commissions or slippage, fractional shares, cash-only buying, and fills at each day's opening price after a signal from the prior close. Tuning settings until this number looks good can just fit last year's market. Not financial advice.";
+    if (r.usedFallback) caveat = "Couldn't reach Wikipedia for the full index lists, so only the built-in " + r.universeSize + "-symbol watchlist was tested. " + caveat;
+    document.getElementById("backtest-caveat").textContent = caveat;
+  }
+
+  function pollBacktest() {
+    var btn = document.getElementById("backtest-btn");
+    var status = document.getElementById("backtest-status");
+    jsonFetch("/api/stocks/backtest").then(function (st) {
+      if (st.running) {
+        status.textContent = st.stage || "Running…";
+        backtestTimer = setTimeout(pollBacktest, 2000);
+        return;
+      }
+      btn.disabled = false;
+      if (st.error) {
+        status.textContent = "Test failed: " + st.error;
+      } else if (st.result) {
+        status.textContent = "Done.";
+        renderBacktest(st.result);
+      } else {
+        status.textContent = "";
+      }
+    }).catch(function (e) {
+      btn.disabled = false;
+      status.textContent = "Lost contact with the server: " + e.message;
+    });
+  }
+
+  function initBacktest() {
+    var btn = document.getElementById("backtest-btn");
+    btn.addEventListener("click", function () {
+      btn.disabled = true;
+      document.getElementById("backtest-status").textContent = "Starting test…";
+      jsonFetch("/api/stocks/backtest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(readFormSettings())
+      }).then(function () {
+        clearTimeout(backtestTimer);
+        backtestTimer = setTimeout(pollBacktest, 1500);
+      }).catch(function (e) {
+        btn.disabled = false;
+        document.getElementById("backtest-status").textContent = "Couldn't start the test: " + e.message;
+      });
+    });
+
+    // If a test was started earlier (or finished while the page was closed),
+    // pick it back up.
+    jsonFetch("/api/stocks/backtest").then(function (st) {
+      if (st.running) {
+        btn.disabled = true;
+        pollBacktest();
+      } else if (st.result) {
+        renderBacktest(st.result);
+        document.getElementById("backtest-status").textContent = "Showing the last test run.";
+      }
+    }).catch(function () {});
+  }
+
+  // ---------- auto mode ----------
+
+  function loadAuto() {
+    return jsonFetch("/api/stocks/auto").then(function (a) {
+      document.getElementById("auto-toggle").checked = !!a.autoMode;
+      if (a.lastAutoRun) {
+        var r = a.lastAutoRun;
+        setStatus("Last auto cycle " + new Date(r.timestamp).toLocaleString() + ": sold " + r.sold.length + ", bought " + r.bought + (r.errors.length ? " (issues - see Activity Log)" : ""));
+      }
+    }).catch(function () {});
+  }
+
+  function initAuto() {
+    var toggle = document.getElementById("auto-toggle");
+    toggle.addEventListener("change", function () {
+      var on = toggle.checked;
+      if (on && lastAccount && lastAccount.paper === false) {
+        if (!confirm("Auto mode will place REAL orders with real money every hour while the market is open, with no confirmation click. Turn it on?")) {
+          toggle.checked = false;
+          return;
+        }
+      }
+      jsonFetch("/api/stocks/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ autoMode: on })
+      }).then(function () {
+        setActionStatus(on ? "Auto mode on - runs at the top of every hour while the market is open." : "Auto mode off.");
+      }).catch(function (e) {
+        toggle.checked = !on;
+        setActionStatus("Couldn't change auto mode: " + e.message);
+      });
+    });
+
+    // Refresh page data at the top of every hour (slightly after, so the
+    // server's auto cycle has had time to start), keeping the view current.
+    function scheduleHourlyRefresh() {
+      var now = new Date();
+      var next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours() + 1, 0, 30);
+      setTimeout(function () {
+        refreshAfterAction();
+        loadAuto();
+        scheduleHourlyRefresh();
+      }, next - now);
+    }
+    scheduleHourlyRefresh();
+  }
+
   // ---------- init ----------
 
   function init() {
     initActions();
+    initAuto();
     initSettingsForm();
+    initBacktest();
     initConfigModal();
 
     loadStatus().then(function (status) {
@@ -533,10 +854,12 @@
       loadLog();
       loadHistory();
       loadSettings();
+      loadAuto();
     });
 
     window.addEventListener("themechange", function () {
       if (lastSnapshots) drawPortfolioChart(document.getElementById("chart-portfolio"), lastSnapshots);
+      if (lastBacktest) drawBacktestChart(document.getElementById("chart-backtest"), lastBacktest.curve);
     });
   }
 

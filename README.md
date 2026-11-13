@@ -5,10 +5,17 @@ computer — everyone on your network can view and update the same live data
 from their own browser. It now has more than one section: click the blue
 **$** logo top-left on any page to switch between them.
 
-- **Budget Planner** (this page) — income, expenses, savings, 401K/TSP, accounts, tax prep.
+- **Budget Planner** (this page) — income, expenses, savings, 401K/TSP, accounts.
 - **[Stock Trader](STOCKS_README.md)** — an Alpaca-connected momentum
   screener and order-execution page. Needs a one-time `pip install` and an
   Alpaca API key; see `STOCKS_README.md` for setup.
+- **Home/Car Maintenance** — a logbook-style page with a **Home** tab
+  (recurring chores like air and water filters, each with part number,
+  size, repeat interval, last-done date, a dated history, and a due/overdue
+  badge, plus a planned-projects list) and a **Cars** tab (add/remove cars,
+  record the odometer, and track oil changes and other manufacturer-recommended
+  services by miles and/or months, plus planned work per car). Data lives in
+  `maintenance_data.json`.
 - **Meal Planner** — keep a list of favorite meals with ingredients and
   instructions (or import them straight from a recipe URL - TheMealDB,
   RecipeDB, or most recipe blogs - or pull in TheMealDB's entire database
@@ -71,15 +78,6 @@ from their own browser. It now has more than one section: click the blue
   scenarios: 8% (low), 10% (expected), and 12% (high). Includes a chart, a
   milestone comparison table, and a full year-by-year table. This is
   separate from the monthly budget — it isn't tied to a specific month.
-- **Tax Prep** — a year-round checklist of the documents and numbers a tax
-  preparer (or the IRS) will ask for: filing status, dependents, prior-year
-  AGI, estimated payments made, and a categorized document checklist
-  (Income, Deductions & Credits, Retirement & Investments,
-  Business/Self-Employment, Health Insurance, Life Events, Personal Info)
-  you check off as things come in. Everything is editable — rename, add, or
-  delete items and whole categories to match your situation — and "Start
-  New Tax Year" unchecks everything and bumps the year forward without
-  losing your customized list. Not tied to a specific month.
 
 All data is saved automatically to `data.json` on the host computer, so
 closing the browser or restarting a device never loses anything.
@@ -179,31 +177,6 @@ If you want the site available whenever the host computer is on, you can:
 
 Ask me if you'd like help setting either of these up.
 
-## Getting updates
-
-If you got this folder by running `git clone` on the GitHub repo (rather
-than copying it by hand), double-clicking `Start Budget Site.bat` checks
-for the latest version and updates automatically before starting the
-server each time - no separate "update" step needed, just launch it like
-normal.
-
-This only ever touches the site's code (`server.py`, everything in
-`static/`, etc.) - your personal data (`data.json`, `meals_data.json`,
-`backups/`) and any API keys/tokens you've configured are listed in
-`.gitignore`, so they're never tracked by git and can never be touched or
-overwritten by an update. If there's no internet connection, or this
-folder wasn't set up with `git clone`, it silently skips the check and
-starts the server with whatever's already here - it never blocks startup.
-
-To get on git in the first place instead of a plain folder copy:
-
-```
-git clone <repo-url> homebudget
-cd homebudget
-```
-
-then run `Start Budget Site.bat` as usual.
-
 ## Firewall note
 
 If other devices on your network can't reach the "Network" address shown
@@ -215,7 +188,6 @@ through the firewall for private/home networks.
 
 ```
 homebudget/
-  .gitignore                       Keeps your data and secrets out of git (see "Getting updates")
   server.py                       Local web server (stdlib only)
   data.json                        Your saved budget data (created automatically)
   meals_data.json                   Your saved meal planner data (created automatically)

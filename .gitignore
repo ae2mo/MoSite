@@ -3,6 +3,7 @@
 # breaks by excluding them; they just aren't tracked by git.
 data.json
 meals_data.json
+maintenance_data.json
 stocks_data.json
 backups/
 
@@ -13,9 +14,14 @@ backups/
 stocks_config.json
 homeassistant_config.json
 
-# Python bytecode cache
+# Personal files / scratch
+*.pdf
+test.txt
+
+# Python bytecode cache, temp files
 __pycache__/
 *.pyc
+*.tmp
 
 # Logs
 tray_launcher_error.log

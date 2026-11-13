@@ -2,37 +2,6 @@
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
-rem ---- Auto-update from GitHub, if this copy was made with "git clone" ----
-rem Runs before anything else so you're always launching the latest pushed
-rem version. Safe by design: git reset --hard only touches files tracked by
-rem git (the site's code) - data.json, meals_data.json, backups/, and any
-rem config files with secrets are all listed in .gitignore, so they're never
-rem tracked and this can never overwrite your personal data. Skips quietly
-rem (never blocks startup) if git isn't installed, this folder didn't come
-rem from "git clone" (no .git folder), or there's no internet right now.
-where git >nul 2>nul
-if !errorlevel!==0 (
-    if exist ".git" (
-        echo Checking for updates...
-        git fetch --quiet origin >nul 2>nul
-        if !errorlevel!==0 (
-            set GITBRANCH=
-            for /f "delims=" %%b in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set GITBRANCH=%%b
-            if not "!GITBRANCH!"=="" (
-                git reset --hard origin/!GITBRANCH! --quiet >nul 2>nul
-                if !errorlevel!==0 (
-                    echo Up to date.
-                ) else (
-                    echo Couldn't apply updates ^(unusual git state^) - continuing with the current version.
-                )
-            )
-        ) else (
-            echo No internet, or couldn't reach GitHub - continuing with the current version.
-        )
-        echo.
-    )
-)
-
 set PYCMD=
 where python >nul 2>nul
 if !errorlevel!==0 set PYCMD=python

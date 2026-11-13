@@ -610,7 +610,6 @@
           case "savings": renderSavingsStructure(); break;
           case "trends": renderTrends(); break;
           case "accounts": renderAccountsStructure(); break;
-          case "taxprep": renderTaxPrepStructure(); break;
         }
       });
     });
@@ -2899,7 +2898,6 @@
     var balance = document.getElementById("input-tsp-balance");
     var contribution = document.getElementById("input-tsp-contribution");
     var retirementYear = document.getElementById("input-tsp-retirement-year");
-    var rateSelect = document.getElementById("tsp-rate-select");
 
     balance.addEventListener("input", function () {
       state.tsp.currentBalance = parseFloat(balance.value) || 0;
@@ -2919,13 +2917,17 @@
       scheduleSave();
     });
 
-    rateSelect.addEventListener("change", function () {
-      renderTSPTable(rateSelect.value);
-    });
-
     var withdrawalRate = document.getElementById("input-tsp-withdrawal-rate");
     withdrawalRate.addEventListener("input", function () {
       state.tsp.withdrawalRate = parseFloat(withdrawalRate.value) || 4;
+      renderTSP();
+      scheduleSave();
+    });
+
+    var retirementGrowthRate = document.getElementById("input-tsp-retirement-growth-rate");
+    retirementGrowthRate.addEventListener("input", function () {
+      var v = parseFloat(retirementGrowthRate.value);
+      state.tsp.retirementGrowthRate = isNaN(v) ? 4.5 : v;
       renderTSP();
       scheduleSave();
     });
@@ -2940,6 +2942,8 @@
     }
     document.getElementById("input-tsp-retirement-year").value = state.tsp.retirementYear;
     document.getElementById("input-tsp-withdrawal-rate").value = state.tsp.withdrawalRate || 4;
+    document.getElementById("input-tsp-retirement-growth-rate").value =
+      state.tsp.retirementGrowthRate != null ? state.tsp.retirementGrowthRate : 4.5;
   }
 
   function renderTSP() {
@@ -2953,9 +2957,8 @@
     renderTSPBurnBox(projection);
     renderTSPBurndown(projection);
     drawTSPChart(document.getElementById("chart-tsp"), projection);
-
-    var rateSelect = document.getElementById("tsp-rate-select");
-    renderTSPTable(rateSelect.value);
+    renderFers();
+    renderSS();
   }
 
   // Withdrawal rate is user-adjustable via the slider (defaults to 4%, the
@@ -2976,28 +2979,33 @@
       "Based on " + fmt(balanceAtRetirement) + " projected in " + (getCurrentYear() + m.target) + ".";
   }
 
-  // Simulates the balance draining down after retirement: every year it
-  // grows 10% (the Expected scenario's rate), then the fixed annual
-  // withdrawal amount (the "Annual Income on Retirement" figure above) comes
-  // out. Runs up to 50 years past retirement or until the balance hits zero,
-  // whichever comes first - long enough to cover a realistic retirement
-  // horizon without running forever for low withdrawal rates that never
-  // actually deplete the balance.
-  function computeTSPBurndown(balanceAtRetirement, rate) {
-    var growthRate = 0.10;
+  // Simulates the balance draining down after retirement: each year, the
+  // fixed annual withdrawal amount (the "Annual Income from TSP/401k"
+  // figure above) comes OUT FIRST - you're living on that money through the
+  // year, so it never gets a year of growth - and only what's left over
+  // keeps compounding, at the conservative rate set by the slider below
+  // (defaults to a bond-like 4.5%, standing in for a retirement portfolio
+  // shifted toward the TSP's G/F Funds, rather than the stock-heavy 10%
+  // assumption used for the accumulation phase above). Runs up to 50 years
+  // past retirement or until the balance hits zero, whichever comes first -
+  // long enough to cover a realistic retirement horizon without running
+  // forever for low withdrawal rates that never actually deplete the
+  // balance.
+  function computeTSPBurndown(balanceAtRetirement, rate, growthRate) {
     var maxYears = 50;
     var withdrawal = balanceAtRetirement * rate;
     var rows = [{ year: 0, balance: balanceAtRetirement }];
     var balance = balanceAtRetirement;
     var depletedYear = null;
     for (var y = 1; y <= maxYears; y++) {
-      balance = balance * (1 + growthRate) - withdrawal;
-      if (balance <= 0) {
+      var afterWithdrawal = balance - withdrawal;
+      if (afterWithdrawal <= 0) {
         balance = 0;
         rows.push({ year: y, balance: balance });
         depletedYear = y;
         break;
       }
+      balance = afterWithdrawal * (1 + growthRate);
       rows.push({ year: y, balance: balance });
     }
     return { rows: rows, depletedYear: depletedYear, withdrawal: withdrawal };
@@ -3007,19 +3015,25 @@
     var m = retirementMilestoneYears();
     var balanceAtRetirement = projection.mid[m.target].end;
     var rate = (Number(state.tsp.withdrawalRate) || 4) / 100;
+    var growthRatePct = state.tsp.retirementGrowthRate != null ? Number(state.tsp.retirementGrowthRate) : 4.5;
+    var growthRate = growthRatePct / 100;
     var retirementCalendarYear = getCurrentYear() + m.target;
 
-    var result = computeTSPBurndown(balanceAtRetirement, rate);
+    document.getElementById("tsp-retirement-growth-rate-display").textContent = pctStr(growthRatePct);
+
+    var result = computeTSPBurndown(balanceAtRetirement, rate, growthRate);
 
     var note;
     if (result.depletedYear) {
       note = "At a " + pctStr(state.tsp.withdrawalRate || 4) + " withdrawal rate (" + fmt(result.withdrawal) +
-        "/yr), your balance is projected to run out " + result.depletedYear +
+        "/yr, taken out before that year's growth) and " + pctStr(growthRatePct) +
+        " growth on the rest, your balance is projected to run out " + result.depletedYear +
         (result.depletedYear === 1 ? " year" : " years") + " into retirement, around " +
         (retirementCalendarYear + result.depletedYear) + ".";
     } else {
       note = "At a " + pctStr(state.tsp.withdrawalRate || 4) + " withdrawal rate (" + fmt(result.withdrawal) +
-        "/yr), 10% growth keeps outpacing your withdrawals - this balance is projected to keep growing rather than run out, at least through the next " +
+        "/yr, taken out before that year's growth), " + pctStr(growthRatePct) +
+        " growth on the rest keeps outpacing your withdrawals - this balance is projected to keep growing rather than run out, at least through the next " +
         (result.rows.length - 1) + " years of retirement.";
     }
     document.getElementById("tsp-burndown-note").textContent = note;
@@ -3128,24 +3142,6 @@
     });
   }
 
-  function renderTSPTable(rateKey) {
-    var projection = computeTSPProjection();
-    var rows = projection[rateKey] || projection.mid;
-    var tbody = document.getElementById("tsp-table-body");
-    tbody.innerHTML = "";
-    rows.forEach(function (r) {
-      if (r.year === 0) return;
-      var tr = document.createElement("tr");
-      tr.innerHTML =
-        "<td>" + r.year + "</td>" +
-        "<td>" + fmt(r.start) + "</td>" +
-        "<td>" + fmt(r.contributions) + "</td>" +
-        "<td>" + fmt(r.growth) + "</td>" +
-        "<td><strong>" + fmt(r.end) + "</strong></td>";
-      tbody.appendChild(tr);
-    });
-  }
-
   function drawTSPChart(canvas, projection) {
     var ctx = canvas.getContext("2d");
     var W = canvas.width, H = canvas.height;
@@ -3243,6 +3239,356 @@
     ctx.moveTo(padLeft, padTop + chartH);
     ctx.lineTo(padLeft + chartW, padTop + chartH);
     ctx.stroke();
+  }
+
+  // ---------- FERS pension estimate (global, not month-specific) ----------
+  // A rough estimate of the FERS Basic Annuity: High-3 average salary x
+  // years of creditable service x a multiplier (1% standard, or 1.1%
+  // "enhanced" if retiring at 62+ with 20+ years of service - the one
+  // eligibility rule this can't check automatically since there's no birth
+  // date anywhere on this page, so a checkbox lets you say which applies to
+  // you instead). Years of service is computed from your Service
+  // Computation Date forward to each projected year, reusing the same
+  // "years from now" axis as the 401K/TSP projection above and its
+  // Projected Retirement Year field, so the two stay in sync automatically.
+
+  var FERS_STANDARD_MULTIPLIER = 0.01;
+  var FERS_ENHANCED_MULTIPLIER = 0.011;
+
+  function parseDateInputValue(str) {
+    if (!str) return null;
+    var parts = String(str).split("-");
+    if (parts.length !== 3) return null;
+    var y = parseInt(parts[0], 10), m = parseInt(parts[1], 10), d = parseInt(parts[2], 10);
+    if (!y || !m || !d) return null;
+    var dt = new Date(y, m - 1, d);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  // Approximate calendar date "y" years from today (same month/day, y years
+  // out) - matches the whole-year granularity yearsToRetirement() already
+  // uses elsewhere on this tab.
+  function dateYearsFromNow(y) {
+    var d = new Date();
+    d.setFullYear(d.getFullYear() + y);
+    return d;
+  }
+
+  function yearsOfServiceAt(targetDate, scdDate) {
+    if (!scdDate || !targetDate) return 0;
+    var ms = targetDate.getTime() - scdDate.getTime();
+    if (ms <= 0) return 0;
+    return ms / (365.25 * 24 * 60 * 60 * 1000);
+  }
+
+  function computeFersProjection() {
+    var scd = parseDateInputValue(state.fers.serviceCompDate);
+    var high3 = Number(state.fers.high3) || 0;
+    var years = totalProjectionYears();
+    var rows = [];
+    for (var y = 0; y <= years; y++) {
+      var svc = yearsOfServiceAt(dateYearsFromNow(y), scd);
+      rows.push({
+        year: y,
+        yearsOfService: svc,
+        standard: high3 * FERS_STANDARD_MULTIPLIER * svc,
+        enhanced: high3 * FERS_ENHANCED_MULTIPLIER * svc
+      });
+    }
+    return rows;
+  }
+
+  function initFersInputs() {
+    var scdInput = document.getElementById("input-fers-scd");
+    if (!scdInput) return; // this page doesn't have the FERS section
+    var high3Input = document.getElementById("input-fers-high3");
+    var enhancedInput = document.getElementById("input-fers-enhanced-eligible");
+
+    scdInput.addEventListener("input", function () {
+      state.fers.serviceCompDate = scdInput.value;
+      renderFers();
+      scheduleSave();
+    });
+
+    high3Input.addEventListener("input", function () {
+      state.fers.high3 = parseFloat(high3Input.value) || 0;
+      renderFers();
+      scheduleSave();
+    });
+
+    enhancedInput.addEventListener("change", function () {
+      state.fers.enhancedEligible = enhancedInput.checked;
+      renderFers();
+      scheduleSave();
+    });
+  }
+
+  function populateFersInputs() {
+    var scdInput = document.getElementById("input-fers-scd");
+    if (!scdInput) return;
+    scdInput.value = state.fers.serviceCompDate || "";
+    document.getElementById("input-fers-high3").value = state.fers.high3 || "";
+    document.getElementById("input-fers-enhanced-eligible").checked = !!state.fers.enhancedEligible;
+  }
+
+  function renderFersPensionBox(projection) {
+    var m = retirementMilestoneYears();
+    var row = projection[m.target];
+    var usingEnhanced = !!state.fers.enhancedEligible;
+    var amount = usingEnhanced ? row.enhanced : row.standard;
+
+    document.getElementById("fers-pension-value").textContent = fmt(amount);
+
+    if (!state.fers.serviceCompDate) {
+      document.getElementById("fers-pension-note").textContent = "Enter a Service Computation Date to calculate.";
+      document.getElementById("fers-years-service-note").textContent = "";
+      return;
+    }
+
+    var svcText = row.yearsOfService.toFixed(1) + (row.yearsOfService === 1 ? " year" : " years");
+    document.getElementById("fers-pension-note").textContent =
+      svcText + " of service by " + (getCurrentYear() + m.target) + ", using the " +
+      (usingEnhanced ? "Enhanced (1.1%)" : "Standard (1%)") + " multiplier.";
+    document.getElementById("fers-years-service-note").textContent =
+      svcText + " of service by your target retirement year.";
+  }
+
+  function renderFersMilestoneTable(projection) {
+    var m = retirementMilestoneYears();
+    var currentYear = getCurrentYear();
+
+    document.getElementById("fers-milestone-early-label").textContent =
+      m.target < 5 ? ("Today (" + currentYear + ")") : ("5 Years Early (" + (currentYear + m.early) + ")");
+    document.getElementById("fers-milestone-target-label").textContent = "Target Retirement (" + (currentYear + m.target) + ")";
+    document.getElementById("fers-milestone-late-label").textContent = "5 Years Late (" + (currentYear + m.late) + ")";
+
+    document.getElementById("fers-milestone-standard-early").textContent = fmt(projection[m.early].standard);
+    document.getElementById("fers-milestone-standard-target").textContent = fmt(projection[m.target].standard);
+    document.getElementById("fers-milestone-standard-late").textContent = fmt(projection[m.late].standard);
+
+    document.getElementById("fers-milestone-enhanced-early").textContent = fmt(projection[m.early].enhanced);
+    document.getElementById("fers-milestone-enhanced-target").textContent = fmt(projection[m.target].enhanced);
+    document.getElementById("fers-milestone-enhanced-late").textContent = fmt(projection[m.late].enhanced);
+  }
+
+  function drawFersChart(canvas, projection) {
+    var ctx = canvas.getContext("2d");
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    var padLeft = 70, padRight = 20, padTop = 26, padBottom = 34;
+    var chartW = W - padLeft - padRight;
+    var chartH = H - padTop - padBottom;
+
+    var years = totalProjectionYears();
+    var maxVal = 0;
+    projection.forEach(function (r) { maxVal = Math.max(maxVal, r.standard, r.enhanced); });
+    if (maxVal <= 0) maxVal = 1000;
+    var magnitude = Math.pow(10, Math.floor(Math.log(maxVal) / Math.LN10));
+    maxVal = Math.ceil(maxVal / magnitude) * magnitude;
+
+    function xForYear(y) { return padLeft + (y / years) * chartW; }
+    function yForVal(v) { return padTop + chartH - (v / maxVal) * chartH; }
+
+    ctx.strokeStyle = themeColor("--slate-100");
+    ctx.fillStyle = themeColor("--slate-400");
+    ctx.font = "11px sans-serif";
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    var divisions = 5;
+    for (var i = 0; i <= divisions; i++) {
+      var val = (maxVal / divisions) * i;
+      var y = yForVal(val);
+      ctx.beginPath();
+      ctx.moveTo(padLeft, y);
+      ctx.lineTo(padLeft + chartW, y);
+      ctx.stroke();
+      ctx.fillText("$" + fmtShort(val), padLeft - 8, y);
+    }
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+    var xStep = years >= 20 ? 5 : (years >= 10 ? 2 : 1);
+    for (var yr = 0; yr <= years; yr += xStep) {
+      ctx.fillText("Yr " + yr, xForYear(yr), padTop + chartH + 8);
+    }
+
+    var milestones = retirementMilestoneYears();
+    var milestoneList = [
+      { year: milestones.early, label: "-5" },
+      { year: milestones.target, label: "Target" },
+      { year: milestones.late, label: "+5" }
+    ];
+    ctx.strokeStyle = themeColor("--slate-400");
+    ctx.setLineDash([4, 3]);
+    ctx.lineWidth = 1;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+    ctx.font = "10.5px sans-serif";
+    milestoneList.forEach(function (m) {
+      var x = xForYear(m.year);
+      ctx.beginPath();
+      ctx.moveTo(x, padTop);
+      ctx.lineTo(x, padTop + chartH);
+      ctx.stroke();
+      ctx.fillStyle = themeColor("--slate-600");
+      ctx.fillText(m.label, x, padTop - 2);
+    });
+    ctx.setLineDash([]);
+
+    ctx.textAlign = "center";
+    ctx.textBaseline = "top";
+
+    // Same color convention as the Low/High TSP scenario lines, so the
+    // visual language matches between the two charts on this tab.
+    var lines = [
+      { key: "standard", color: "#8996ab" },
+      { key: "enhanced", color: "#1f9d55" }
+    ];
+    lines.forEach(function (line) {
+      ctx.strokeStyle = line.color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      projection.forEach(function (r, idx) {
+        var x = xForYear(r.year);
+        var y = yForVal(r[line.key]);
+        if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      var last = projection[projection.length - 1];
+      ctx.fillStyle = line.color;
+      ctx.beginPath();
+      ctx.arc(xForYear(last.year), yForVal(last[line.key]), 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.strokeStyle = themeColor("--slate-200");
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padLeft, padTop + chartH);
+    ctx.lineTo(padLeft + chartW, padTop + chartH);
+    ctx.stroke();
+  }
+
+  function renderFers() {
+    if (!document.getElementById("fers-pension-value")) return; // this page doesn't have the FERS section
+    var projection = computeFersProjection();
+    renderFersPensionBox(projection);
+    renderFersMilestoneTable(projection);
+    drawFersChart(document.getElementById("chart-fers"), projection);
+    renderTotalRetirementIncome();
+  }
+
+  // ---------- Social Security (global, not month-specific) ----------
+  // Deliberately simple: rather than re-deriving a full AIME/bend-point
+  // calculation (which needs a complete 35-year, wage-indexed earnings
+  // history), this takes the benefit estimate straight from your own
+  // Social Security statement (ssa.gov/myaccount - "your estimated benefit
+  // at Full Retirement Age") and applies Social Security's own published
+  // adjustment rules for claiming earlier or later than that:
+  //   - Early (as far back as 62): -5/9 of 1% per month for the first 36
+  //     months early, then -5/12 of 1% per month beyond that.
+  //   - Delayed (up to 70): +2/3 of 1% per month (8%/year) past Full
+  //     Retirement Age.
+  // These are the same percentages SSA itself uses, just applied to a
+  // benefit you already know rather than one estimated from scratch.
+
+  function computeSSAnnual() {
+    var monthlyAtFRA = Number(state.ss.monthlyAtFRA) || 0;
+    var fra = Number(state.ss.fullRetirementAge) || 67;
+    var claimAge = Number(state.ss.claimingAge) || fra;
+
+    var monthsEarly = Math.max(0, (fra - claimAge) * 12);
+    var monthsLate = Math.max(0, (claimAge - fra) * 12);
+
+    var adjustedMonthly = monthlyAtFRA;
+    var note = "at your Full Retirement Age benefit (claiming at " + fra + ").";
+
+    if (monthsEarly > 0) {
+      var first36 = Math.min(monthsEarly, 36);
+      var remainder = Math.max(0, monthsEarly - 36);
+      var reductionPct = (first36 * (5 / 9) + remainder * (5 / 12)) / 100;
+      adjustedMonthly = monthlyAtFRA * (1 - reductionPct);
+      note = "reduced " + pctStr(reductionPct * 100) + " for claiming at " + claimAge +
+        " (" + (monthsEarly / 12).toFixed(1) + " years before Full Retirement Age).";
+    } else if (monthsLate > 0) {
+      var increasePct = (monthsLate * (2 / 3)) / 100;
+      adjustedMonthly = monthlyAtFRA * (1 + increasePct);
+      note = "increased " + pctStr(increasePct * 100) + " for claiming at " + claimAge +
+        " (" + (monthsLate / 12).toFixed(1) + " years past Full Retirement Age).";
+    }
+
+    return { monthly: adjustedMonthly, annual: adjustedMonthly * 12, note: note };
+  }
+
+  function initSSInputs() {
+    var monthlyInput = document.getElementById("input-ss-monthly-fra");
+    if (!monthlyInput) return; // this page doesn't have the Social Security section
+    var fraInput = document.getElementById("input-ss-fra");
+    var claimInput = document.getElementById("input-ss-claim-age");
+
+    monthlyInput.addEventListener("input", function () {
+      state.ss.monthlyAtFRA = parseFloat(monthlyInput.value) || 0;
+      renderSS();
+      scheduleSave();
+    });
+
+    fraInput.addEventListener("input", function () {
+      state.ss.fullRetirementAge = parseFloat(fraInput.value) || 67;
+      renderSS();
+      scheduleSave();
+    });
+
+    claimInput.addEventListener("input", function () {
+      state.ss.claimingAge = parseFloat(claimInput.value) || state.ss.fullRetirementAge || 67;
+      renderSS();
+      scheduleSave();
+    });
+  }
+
+  function populateSSInputs() {
+    var monthlyInput = document.getElementById("input-ss-monthly-fra");
+    if (!monthlyInput) return;
+    monthlyInput.value = state.ss.monthlyAtFRA || "";
+    document.getElementById("input-ss-fra").value = state.ss.fullRetirementAge || 67;
+    document.getElementById("input-ss-claim-age").value = state.ss.claimingAge || state.ss.fullRetirementAge || 67;
+  }
+
+  function renderSS() {
+    var valueEl = document.getElementById("ss-annual-value");
+    if (!valueEl) return; // this page doesn't have the Social Security section
+    var result = computeSSAnnual();
+    valueEl.textContent = fmt(result.annual);
+    document.getElementById("ss-annual-note").textContent = fmt(result.monthly) + "/mo, " + result.note;
+    renderTotalRetirementIncome();
+  }
+
+  // Annual income from TSP/401k, the estimated FERS pension, and Social
+  // Security, combined - all three already independently recalculated
+  // above, so this just adds them together at the same target retirement
+  // year (Social Security isn't tied to the TSP retirement year the same
+  // way, but uses your own claiming age input instead).
+  function renderTotalRetirementIncome() {
+    var valueEl = document.getElementById("total-retirement-income-value");
+    if (!valueEl) return; // this page doesn't have the FERS section
+
+    var m = retirementMilestoneYears();
+
+    var tspProjection = computeTSPProjection();
+    var balanceAtRetirement = tspProjection.mid[m.target].end;
+    var withdrawalRate = (Number(state.tsp.withdrawalRate) || 4) / 100;
+    var tspIncome = balanceAtRetirement * withdrawalRate;
+
+    var fersProjection = computeFersProjection();
+    var fersRow = fersProjection[m.target];
+    var fersIncome = state.fers.enhancedEligible ? fersRow.enhanced : fersRow.standard;
+
+    var ssIncome = computeSSAnnual().annual;
+
+    valueEl.textContent = fmt(tspIncome + fersIncome + ssIncome);
+    document.getElementById("total-retirement-income-note").textContent =
+      fmt(tspIncome) + " TSP/401k + " + fmt(fersIncome) + " FERS + " + fmt(ssIncome) + " Social Security.";
   }
 
   // ---------- accounts ----------
@@ -3464,385 +3810,6 @@
     });
   }
 
-  // ---------- tax prep ----------
-
-  // A checklist-style tab for gathering tax documents and key numbers each
-  // year - not tied to a specific month, same convention as Accounts. The
-  // categories/items below start from a general tax-organizer template
-  // (the kind of thing a CPA hands you every January) but are fully
-  // editable - rename, add, or remove whatever does or doesn't apply to
-  // your situation (e.g. delete the whole Business section if you're not
-  // self-employed). "Start New Tax Year" only unchecks every item and
-  // clears notes, then bumps the year forward - it never deletes your
-  // categories/items, since the same document types are almost always
-  // needed again the following year.
-
-  function defaultTaxPrepCategories() {
-    var TEMPLATE = [
-      {
-        name: "Personal & Family Info",
-        items: [
-          "Full legal names, dates of birth, and SSNs for you, your spouse, and all dependents",
-          "Any change in dependents this year (new child, one who no longer qualifies, etc.)",
-          "Marriage, divorce, or legal name change during the year",
-          "Direct deposit info for your refund (voided check or routing/account number)",
-          "Copy of last year's tax return (needed for AGI verification / e-file)",
-          "Any IRS or state tax notices received during the year"
-        ]
-      },
-      {
-        name: "Income Documents",
-        items: [
-          "W-2(s) from every employer",
-          "1099-NEC / 1099-MISC (contract or freelance income)",
-          "1099-INT (bank/credit union interest)",
-          "1099-DIV (dividends)",
-          "1099-B (stock/investment sales, with cost basis)",
-          "1099-R (retirement plan or pension distributions)",
-          "SSA-1099 (Social Security benefits)",
-          "1099-G (unemployment compensation or state tax refund)",
-          "K-1(s) (partnership, S-corp, trust income)",
-          "Rental income and expense records",
-          "Alimony received (pre-2019 divorce agreements only)",
-          "Gambling winnings (W-2G) and documented losses"
-        ]
-      },
-      {
-        name: "Deductions & Credits",
-        items: [
-          "1098 (mortgage interest paid)",
-          "Property tax statements",
-          "1098-E (student loan interest paid)",
-          "1098-T (tuition paid) and other education expense receipts",
-          "Charitable donation receipts (cash and non-cash)",
-          "Unreimbursed medical/dental expense records",
-          "Childcare provider name, address, EIN/SSN, and amount paid",
-          "IRA contribution records (Traditional and Roth)",
-          "HSA contributions and Form 5498-SA / 1099-SA",
-          "Energy-efficient home improvement receipts (windows, solar, HVAC, etc.)",
-          "Educator expenses (if a teacher)"
-        ]
-      },
-      {
-        name: "Retirement & Investments",
-        items: [
-          "401(k)/TSP year-end contribution summary",
-          "IRA contributions made outside of payroll",
-          "Roth conversions made during the year",
-          "Year-end brokerage statements",
-          "Cryptocurrency transaction records"
-        ]
-      },
-      {
-        name: "Business / Self-Employment",
-        items: [
-          "Profit & loss summary (income and expenses by category)",
-          "1099-NEC forms you issued to contractors",
-          "Home office square footage, if claiming a home office deduction",
-          "Mileage log for business use of a vehicle",
-          "Records of business asset purchases (equipment, software, etc.)",
-          "Quarterly estimated tax payments made"
-        ]
-      },
-      {
-        name: "Health Insurance",
-        items: [
-          "1095-A (Health Insurance Marketplace coverage)",
-          "1095-B / 1095-C (employer or other coverage)",
-          "HSA/FSA year-end statements"
-        ]
-      },
-      {
-        name: "Major Life Events",
-        items: [
-          "Bought or sold a home (closing/settlement statement)",
-          "Moved to a different state",
-          "Started or changed jobs",
-          "Had a baby or adopted a child",
-          "Got married or divorced",
-          "Started a side business",
-          "Received an inheritance or large gift"
-        ]
-      }
-    ];
-    return TEMPLATE.map(function (cat) {
-      return {
-        name: cat.name,
-        items: cat.items.map(function (label) {
-          return { id: nextId(), label: label, have: false, note: "" };
-        })
-      };
-    });
-  }
-
-  function defaultTaxPrepData() {
-    return {
-      year: new Date().getFullYear(),
-      filingStatus: "",
-      priorYearAGI: 0,
-      dependents: "",
-      preparerName: "",
-      preparerContact: "",
-      estimatedPayments: { q1: 0, q2: 0, q3: 0, q4: 0 },
-      lifeEvents: "",
-      notes: "",
-      categories: defaultTaxPrepCategories()
-    };
-  }
-
-  function populateTaxPrepKeyInfo() {
-    var tp = state.taxPrep;
-    document.getElementById("taxprep-year").value = tp.year || "";
-    document.getElementById("taxprep-filing-status").value = tp.filingStatus || "";
-    document.getElementById("taxprep-prior-agi").value = tp.priorYearAGI || "";
-    document.getElementById("taxprep-preparer-name").value = tp.preparerName || "";
-    document.getElementById("taxprep-preparer-contact").value = tp.preparerContact || "";
-    document.getElementById("taxprep-dependents").value = tp.dependents || "";
-    document.getElementById("taxprep-est-q1").value = tp.estimatedPayments.q1 || "";
-    document.getElementById("taxprep-est-q2").value = tp.estimatedPayments.q2 || "";
-    document.getElementById("taxprep-est-q3").value = tp.estimatedPayments.q3 || "";
-    document.getElementById("taxprep-est-q4").value = tp.estimatedPayments.q4 || "";
-    document.getElementById("taxprep-life-events").value = tp.lifeEvents || "";
-    document.getElementById("taxprep-notes").value = tp.notes || "";
-  }
-
-  // Remembers which tax-prep categories are collapsed across re-renders
-  // within this session (not persisted - same convention as Expenses'
-  // collapsedExpenseCategories).
-  var collapsedTaxPrepCategories = {};
-
-  function taxPrepProgressText() {
-    var total = 0, have = 0;
-    state.taxPrep.categories.forEach(function (cat) {
-      cat.items.forEach(function (item) {
-        total++;
-        if (item.have) have++;
-      });
-    });
-    if (!total) return "";
-    return have + " of " + total + " gathered";
-  }
-
-  function buildTaxPrepItemRow(item, cat) {
-    var row = document.createElement("div");
-    row.className = "taxprep-item-row" + (item.have ? " have" : "");
-
-    var checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.className = "taxprep-item-checkbox";
-    checkbox.checked = !!item.have;
-    checkbox.title = "Mark as gathered";
-    checkbox.addEventListener("change", function () {
-      item.have = checkbox.checked;
-      row.classList.toggle("have", item.have);
-      var progressEl = document.getElementById("taxprep-progress");
-      if (progressEl) progressEl.textContent = taxPrepProgressText();
-      scheduleSave();
-    });
-
-    var label = document.createElement("input");
-    label.type = "text";
-    label.className = "taxprep-item-label";
-    label.value = item.label || "";
-    label.addEventListener("input", function () {
-      item.label = label.value;
-      scheduleSave();
-    });
-
-    var note = document.createElement("input");
-    note.type = "text";
-    note.className = "taxprep-item-note";
-    note.placeholder = "Note (e.g. waiting on employer)";
-    note.value = item.note || "";
-    note.addEventListener("input", function () {
-      item.note = note.value;
-      scheduleSave();
-    });
-
-    var removeBtn = document.createElement("button");
-    removeBtn.type = "button";
-    removeBtn.className = "remove-item-btn";
-    removeBtn.innerHTML = "&times;";
-    removeBtn.title = "Remove this item";
-    removeBtn.addEventListener("click", function () {
-      var idx = cat.items.indexOf(item);
-      if (idx > -1) cat.items.splice(idx, 1);
-      renderTaxPrepStructure();
-      scheduleSave();
-    });
-
-    row.appendChild(checkbox);
-    row.appendChild(label);
-    row.appendChild(note);
-    row.appendChild(removeBtn);
-    return row;
-  }
-
-  function buildTaxPrepCategoryCard(cat) {
-    var catDiv = document.createElement("div");
-    catDiv.className = "taxprep-category";
-
-    var isCollapsed = !!collapsedTaxPrepCategories[cat.name];
-
-    var header = document.createElement("div");
-    header.className = "taxprep-category-header";
-
-    var titleWrap = document.createElement("div");
-    titleWrap.className = "taxprep-category-title-wrap";
-
-    var collapseBtn = document.createElement("button");
-    collapseBtn.type = "button";
-    collapseBtn.className = "expand-btn" + (isCollapsed ? "" : " open");
-    collapseBtn.innerHTML = "&#9656;";
-    collapseBtn.title = isCollapsed ? "Expand category" : "Collapse category";
-
-    var nameInput = document.createElement("input");
-    nameInput.type = "text";
-    nameInput.className = "taxprep-category-name";
-    nameInput.value = cat.name || "";
-    nameInput.addEventListener("input", function () {
-      cat.name = nameInput.value;
-      scheduleSave();
-    });
-
-    titleWrap.appendChild(collapseBtn);
-    titleWrap.appendChild(nameInput);
-    header.appendChild(titleWrap);
-
-    var removeCategoryBtn = document.createElement("button");
-    removeCategoryBtn.type = "button";
-    removeCategoryBtn.className = "remove-category-btn";
-    removeCategoryBtn.textContent = "Remove Category";
-    removeCategoryBtn.title = "Delete this entire category and its items";
-    removeCategoryBtn.addEventListener("click", function () {
-      var ok = confirm('Delete the "' + (cat.name || "this") + '" category and all ' + cat.items.length + ' item(s) in it? This can\'t be undone.');
-      if (!ok) return;
-      var idx = state.taxPrep.categories.indexOf(cat);
-      if (idx > -1) state.taxPrep.categories.splice(idx, 1);
-      renderTaxPrepStructure();
-      scheduleSave();
-    });
-    header.appendChild(removeCategoryBtn);
-
-    catDiv.appendChild(header);
-
-    var itemsDiv = document.createElement("div");
-    itemsDiv.className = "taxprep-items";
-    itemsDiv.hidden = isCollapsed;
-
-    function toggleCollapse() {
-      var nowCollapsed = !collapsedTaxPrepCategories[cat.name];
-      collapsedTaxPrepCategories[cat.name] = nowCollapsed;
-      collapseBtn.classList.toggle("open", !nowCollapsed);
-      collapseBtn.title = nowCollapsed ? "Expand category" : "Collapse category";
-      itemsDiv.hidden = nowCollapsed;
-    }
-    collapseBtn.addEventListener("click", toggleCollapse);
-
-    cat.items.forEach(function (item) {
-      itemsDiv.appendChild(buildTaxPrepItemRow(item, cat));
-    });
-
-    var addItemBtn = document.createElement("button");
-    addItemBtn.type = "button";
-    addItemBtn.className = "add-item-btn";
-    addItemBtn.textContent = "+ Add Item";
-    addItemBtn.addEventListener("click", function () {
-      cat.items.push({ id: nextId(), label: "New item", have: false, note: "" });
-      renderTaxPrepStructure();
-      scheduleSave();
-    });
-    itemsDiv.appendChild(addItemBtn);
-
-    catDiv.appendChild(itemsDiv);
-    return catDiv;
-  }
-
-  function renderTaxPrepStructure() {
-    if (!state.taxPrep) return;
-    populateTaxPrepKeyInfo();
-
-    var container = document.getElementById("taxprep-categories-list");
-    if (!container) return;
-    container.innerHTML = "";
-
-    if (!state.taxPrep.categories.length) {
-      var empty = document.createElement("p");
-      empty.className = "card-hint";
-      empty.textContent = "No categories yet - click “+ Add Category” to start your checklist.";
-      container.appendChild(empty);
-    }
-
-    state.taxPrep.categories.forEach(function (cat) {
-      container.appendChild(buildTaxPrepCategoryCard(cat));
-    });
-
-    var progressEl = document.getElementById("taxprep-progress");
-    if (progressEl) progressEl.textContent = taxPrepProgressText();
-  }
-
-  function initTaxPrepTab() {
-    var yearInput = document.getElementById("taxprep-year");
-    if (!yearInput) return; // this page doesn't have the Tax Prep tab
-
-    yearInput.addEventListener("input", function () {
-      state.taxPrep.year = parseInt(yearInput.value, 10) || state.taxPrep.year;
-      scheduleSave();
-    });
-
-    document.getElementById("taxprep-filing-status").addEventListener("change", function (e) {
-      state.taxPrep.filingStatus = e.target.value;
-      scheduleSave();
-    });
-    document.getElementById("taxprep-prior-agi").addEventListener("input", function (e) {
-      state.taxPrep.priorYearAGI = parseFloat(e.target.value) || 0;
-      scheduleSave();
-    });
-    document.getElementById("taxprep-preparer-name").addEventListener("input", function (e) {
-      state.taxPrep.preparerName = e.target.value;
-      scheduleSave();
-    });
-    document.getElementById("taxprep-preparer-contact").addEventListener("input", function (e) {
-      state.taxPrep.preparerContact = e.target.value;
-      scheduleSave();
-    });
-    document.getElementById("taxprep-dependents").addEventListener("input", function (e) {
-      state.taxPrep.dependents = e.target.value;
-      scheduleSave();
-    });
-    ["q1", "q2", "q3", "q4"].forEach(function (q) {
-      document.getElementById("taxprep-est-" + q).addEventListener("input", function (e) {
-        state.taxPrep.estimatedPayments[q] = parseFloat(e.target.value) || 0;
-        scheduleSave();
-      });
-    });
-    document.getElementById("taxprep-life-events").addEventListener("input", function (e) {
-      state.taxPrep.lifeEvents = e.target.value;
-      scheduleSave();
-    });
-    document.getElementById("taxprep-notes").addEventListener("input", function (e) {
-      state.taxPrep.notes = e.target.value;
-      scheduleSave();
-    });
-
-    document.getElementById("add-taxprep-category-btn").addEventListener("click", function () {
-      state.taxPrep.categories.push({ name: "New Category", items: [] });
-      renderTaxPrepStructure();
-      scheduleSave();
-    });
-
-    document.getElementById("taxprep-new-year-btn").addEventListener("click", function () {
-      var ok = confirm("Start a new tax year? This unchecks every item on the checklist and clears notes (your categories and items stay) and moves the year forward by one.");
-      if (!ok) return;
-      state.taxPrep.year = (state.taxPrep.year || new Date().getFullYear()) + 1;
-      state.taxPrep.categories.forEach(function (cat) {
-        cat.items.forEach(function (item) { item.have = false; item.note = ""; });
-      });
-      renderTaxPrepStructure();
-      scheduleSave();
-    });
-  }
-
   // ---------- init ----------
 
   function init() {
@@ -3850,12 +3817,13 @@
     initMonthBar();
     initIncomeAddButton();
     initTSPInputs();
+    initFersInputs();
+    initSSInputs();
     initReceiptModal();
     initStatementImport();
     initBudgetSettingsMenu();
     initClearDataModal();
     initAccountsTab();
-    initTaxPrepTab();
 
     fetch("/api/data")
       .then(function (r) { return r.json(); })
@@ -3864,12 +3832,13 @@
         if (!state.months) state.months = {};
         if (!state.tsp) state.tsp = { currentBalance: 0, monthlyContribution: 0, retirementYear: null, withdrawalRate: 4 };
         if (!state.tsp.withdrawalRate) state.tsp.withdrawalRate = 4;
+        if (state.tsp.retirementGrowthRate == null) state.tsp.retirementGrowthRate = 4.5;
+        if (!state.fers) state.fers = { serviceCompDate: "", high3: 0, enhancedEligible: false };
+        if (!state.ss) state.ss = { monthlyAtFRA: 0, fullRetirementAge: 67, claimingAge: 67 };
         if (!state.accounts) state.accounts = [];
         if (!state.nextId) state.nextId = 1;
         if (!state.activeMonth) state.activeMonth = todayMonthKey();
-        if (!state.taxPrep) state.taxPrep = defaultTaxPrepData();
-        if (!state.taxPrep.categories) state.taxPrep.categories = defaultTaxPrepCategories();
-        if (!state.taxPrep.estimatedPayments) state.taxPrep.estimatedPayments = { q1: 0, q2: 0, q3: 0, q4: 0 };
+        delete state.taxPrep; // Tax Prep section was removed; drop its leftover saved data
 
         ensureMonth(state.activeMonth);
 
@@ -3880,9 +3849,10 @@
         renderDashboard();
         renderTrends();
         populateTSPInputs();
+        populateFersInputs();
+        populateSSInputs();
         renderTSP();
         renderAccountsStructure();
-        renderTaxPrepStructure();
         setSaveStatus("All changes saved");
       })
       .catch(function () {

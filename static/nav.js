@@ -10,7 +10,8 @@
   var PAGES = [
     { key: "budget", title: "Budget", desc: "Income, expenses, savings, 401K/TSP", href: "/" },
     { key: "stocks", title: "Stock Trader", desc: "Alpaca momentum screener & orders", href: "/stocks/" },
-    { key: "meals", title: "Meal Planner", desc: "Favorite meals, weekly plan, shopping list", href: "/meals/" }
+    { key: "meals", title: "Meal Planner", desc: "Favorite meals, weekly plan, shopping list", href: "/meals/" },
+    { key: "maintenance", title: "Home/Car Maintenance", desc: "Maintenance logbook for the house and cars", href: "/maintenance/" }
   ];
 
   function init() {

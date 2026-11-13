@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home/Car Maintenance</title>
+<script src="/theme.js"></script>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/nav.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="maintenance">
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-top-row">
+      <div class="brand">
+        <div class="nav-menu-wrap">
+          <button type="button" class="brand-mark" id="nav-menu-trigger" aria-haspopup="true" aria-expanded="false" title="Switch section">$</button>
+          <div class="nav-menu" id="nav-menu" hidden></div>
+        </div>
+        <div>
+          <h1>Home/Car Maintenance</h1>
+          <p class="brand-sub">A logbook for the house and the cars</p>
+        </div>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="home">Home</button>
+      <button class="tab-btn" data-tab="cars">Cars</button>
+    </nav>
+  </div>
+</header>
+
+<main class="app-main">
+
+  <!-- HOME -->
+  <section class="panel active" id="panel-home">
+    <div class="card">
+      <div class="log-header">
+        <h2>Home Maintenance Logbook</h2>
+        <div class="entry-actions">
+          <button type="button" class="entry-btn primary" id="home-print-btn">Print / Save logbook as PDF</button>
+          <button type="button" class="add-item-btn" id="home-add-task-btn">+ Add Maintenance Item</button>
+        </div>
+      </div>
+      <p class="card-hint">One entry per recurring job. Record the part number or size, set how often it needs doing, and press <strong>Log it</strong> each time you do it &mdash; the date is stamped into that entry's history and the next due date is worked out for you.</p>
+      <div id="home-tasks"></div>
+    </div>
+
+    <div class="card">
+      <div class="log-header">
+        <h2>Planned Projects</h2>
+        <button type="button" class="add-item-btn" id="home-add-plan-btn">+ Add Project</button>
+      </div>
+      <p class="card-hint">Things you want to get done around the house that aren't a repeating chore.</p>
+      <div id="home-plans"></div>
+    </div>
+
+    <div class="card">
+      <h2>Activity History</h2>
+      <p class="card-hint">A permanent record of each time a home job or project was completed.</p>
+      <div id="home-activity" class="activity-box"></div>
+    </div>
+  </section>
+
+  <!-- CARS -->
+  <section class="panel" id="panel-cars">
+    <div class="card">
+      <div class="log-header">
+        <h2>My Cars</h2>
+        <div class="entry-actions">
+          <button type="button" class="entry-btn primary" id="check-recalls-btn">Check Recalls</button>
+          <button type="button" class="add-item-btn" id="car-add-btn">+ Add Car</button>
+        </div>
+      </div>
+      <div class="recall-status" id="recall-status"></div>
+      <div class="car-picker" id="car-picker"></div>
+    </div>
+    <div id="car-detail"></div>
+  </section>
+
+</main>
+
+<footer class="app-footer">
+  <span id="save-status">All changes saved</span>
+</footer>
+
+<script src="/nav.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

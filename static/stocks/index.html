@@ -21,7 +21,7 @@
         </div>
         <div>
           <h1>Stock Trader</h1>
-          <p class="brand-sub">Alpaca momentum screener &amp; order execution</p>
+          <p class="brand-sub">Short-term swing screener &amp; order execution</p>
         </div>
       </div>
       <button type="button" class="gear-btn" id="config-gear-btn" title="Alpaca API settings" aria-haspopup="dialog" aria-expanded="false">&#9881;</button>
@@ -66,6 +66,22 @@
     <p class="card-hint" id="setup-message"></p>
   </div>
 
+  <div class="card">
+    <h2>The Strategy</h2>
+    <p class="card-hint">This page only looks at once-a-day price data and only trades when you click a button &mdash; there's no background process watching the market minute to minute, so literal same-day "day trading" isn't something this can honestly do. What it runs instead is a short-term <strong>swing</strong> strategy, usually holding a position days to a few weeks:</p>
+    <p class="card-hint"><strong>Entry</strong> &mdash; only scores candidates whose short-term trend is intact (price above its 20-day average, which is above its 50-day average), with positive but not overextended momentum, RSI in a "room to run" zone, rising volume, and real relative strength vs. the S&amp;P 500 (it has to be leading the market, not just riding it up).</p>
+    <p class="card-hint"><strong>Sizing</strong> &mdash; each position is sized by its own volatility (ATR) and a fixed % of account equity risked to its stop, capped at a max % per position &mdash; not a flat equal-dollar split, so a calm setup gets a fuller position than a choppy one.</p>
+    <p class="card-hint"><strong>Exit</strong> &mdash; a hard stop-loss, a trailing stop once a position is up enough to protect gains, a time-stop if a setup stalls out, and a trend-break fallback.</p>
+    <p class="card-hint"><strong>Market filter</strong> &mdash; new buys pause while the S&amp;P 500 itself is below its 200-day average, since even good stock-picking tends to lose money fighting a broad downtrend.</p>
+    <p class="card-hint"><strong>Auto mode</strong> &mdash; with the AUTO switch on, the server runs this whole routine at the top of every hour while the US market is open: refresh account data, check sell signals, sell every flagged position, scan, then buy the top picks (the market filter above still applies). It runs on the server, so it works even with this page closed, as long as the site is running. In Live mode this places real orders without a confirmation click, so use it on Paper first.</p>
+    <p class="card-hint">None of this predicts or guarantees a gain &mdash; it's a heuristic, rules-based ranking and risk-management tool for experimentation, not financial advice, and past performance never guarantees future results.</p>
+  </div>
+
+  <div class="card" id="regime-banner" hidden>
+    <h2>Market Conditions</h2>
+    <p class="card-hint" id="regime-detail"></p>
+  </div>
+
   <div class="summary-grid" id="account-summary">
     <div class="summary-card">
       <span class="summary-label">Mode</span>
@@ -86,20 +102,25 @@
   </div>
 
   <div class="card">
-    <h2>Momentum Screener</h2>
-    <p class="card-hint">Ranks the Dow + S&amp;P 500 by a technical momentum score (trend vs. moving averages, 20-day return, RSI, volume, consistency). This is a heuristic screening tool for experimentation &mdash; it does not predict or guarantee any stock will gain 10%, or any amount, in any timeframe. Not financial advice; past performance never guarantees future results.</p>
+    <h2>Swing Screener</h2>
+    <p class="card-hint">Ranks the Dow + S&amp;P 500 by the short-term swing score described above (short-term trend, momentum, RSI positioning, volume, relative strength vs. the S&amp;P 500). A heuristic screening tool for experimentation &mdash; not a prediction or guarantee that any stock will gain any amount in any timeframe, and not financial advice.</p>
     <div class="stocks-actions">
       <button type="button" class="primary-btn" id="scan-btn">Scan Market</button>
       <button type="button" class="primary-btn buy-btn" id="buy-btn">Buy Top Picks</button>
       <button type="button" class="primary-btn sell-btn" id="sell-btn">Check &amp; Sell Signals</button>
+      <label class="auto-switch" id="auto-switch" title="Every hour on the hour (while the market is open): check sell signals, sell flagged positions, scan, then buy top picks">
+        <input type="checkbox" id="auto-toggle">
+        <span class="auto-track"><span class="auto-knob"></span></span>
+        <span class="auto-label">AUTO</span>
+      </label>
       <span class="action-status" id="action-status"></span>
     </div>
     <table class="tracker-table" id="picks-table">
       <thead>
-        <tr><th>Symbol</th><th>Score</th><th>Price</th><th>20d Return</th><th>RSI(14)</th><th>50d MA</th><th>200d MA</th></tr>
+        <tr><th>Symbol</th><th>Score</th><th>Price</th><th>Short-term Return</th><th>RSI(14)</th><th>20d MA</th><th>50d MA</th><th>ATR(14)</th><th>Est. Allocation</th></tr>
       </thead>
       <tbody id="picks-body">
-        <tr><td colspan="7" class="empty-row">Click "Scan Market" to rank candidates.</td></tr>
+        <tr><td colspan="9" class="empty-row">Click "Scan Market" to rank candidates.</td></tr>
       </tbody>
     </table>
     <p class="field-note" id="scan-meta"></p>
@@ -119,7 +140,7 @@
 
   <div class="card" id="sell-review-card" hidden>
     <h2>Sell Signal Review</h2>
-    <p class="card-hint">Every open position, with the exit rule's read on it (price fell below its 50-day average, or RSI is overbought above 78 &mdash; otherwise Hold). Nothing is sold automatically. Click Sell on a row and confirm to place that one order.</p>
+    <p class="card-hint">Every open position, checked against the layered exit rule above (stop-loss, trailing stop, time-stop, trend-break &mdash; otherwise Hold). Positions bought outside this tool, or before this feature existed, only get the trend-break check since the others need a tracked entry date and peak price. Nothing is sold automatically. Click Sell on a row and confirm to place that one order.</p>
     <table class="tracker-table" id="sell-review-table">
       <thead>
         <tr><th>Symbol</th><th>Qty</th><th>Avg Cost</th><th>Current Price</th><th>Market Value</th><th>Unrealized P/L</th><th>Signal</th><th></th></tr>
@@ -140,7 +161,7 @@
   </div>
 
   <div class="card narrow">
-    <h2>Settings</h2>
+    <h2>Scan Settings</h2>
     <div class="form-row">
       <label for="setting-top-n">Number of Top Picks</label>
       <input type="number" id="setting-top-n" min="1" max="50" step="1">
@@ -161,10 +182,84 @@
       </div>
     </div>
     <div class="form-row">
+      <label for="setting-momentum-lookback">Short-term Lookback (trading days)</label>
+      <input type="number" id="setting-momentum-lookback" min="3" max="60" step="1">
+    </div>
+    <div class="form-row">
       <label class="checkbox-row"><input type="checkbox" id="setting-exclude-held"> Skip buying stocks I already hold</label>
+    </div>
+    <div class="form-row">
+      <label class="checkbox-row"><input type="checkbox" id="setting-market-regime"> Pause buying when the S&amp;P 500 is below its 200-day average</label>
     </div>
     <button type="button" class="add-item-btn" id="save-settings-btn">Save Settings</button>
     <p class="field-note" id="settings-status"></p>
+  </div>
+
+  <div class="card narrow">
+    <h2>Strategy &amp; Risk Settings</h2>
+    <p class="card-hint">Controls how big a position gets (sizing) and when it exits (stops). Defaults reflect a disciplined, risk-first approach &mdash; raising the risk % or max position % increases both potential gains and potential losses.</p>
+    <div class="form-row">
+      <label for="setting-risk-percent">Risk Per Trade (% of equity)</label>
+      <div class="input-prefix">
+        <input type="number" id="setting-risk-percent" min="0.1" max="10" step="0.1">
+        <span>%</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <label for="setting-max-position-percent">Max Position Size (% of equity)</label>
+      <div class="input-prefix">
+        <input type="number" id="setting-max-position-percent" min="1" max="100" step="1">
+        <span>%</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <label for="setting-stop-loss-atr">Stop-Loss (x ATR below entry)</label>
+      <input type="number" id="setting-stop-loss-atr" min="0.5" max="6" step="0.1">
+    </div>
+    <div class="form-row">
+      <label for="setting-profit-trail-trigger">Trailing Stop Trigger (% gain)</label>
+      <div class="input-prefix">
+        <input type="number" id="setting-profit-trail-trigger" min="1" max="100" step="1">
+        <span>%</span>
+      </div>
+    </div>
+    <div class="form-row">
+      <label for="setting-trailing-stop-atr">Trailing Stop (x ATR below peak)</label>
+      <input type="number" id="setting-trailing-stop-atr" min="0.5" max="6" step="0.1">
+    </div>
+    <div class="form-row">
+      <label for="setting-max-holding-days">Max Holding Days (time-stop)</label>
+      <input type="number" id="setting-max-holding-days" min="1" max="120" step="1">
+    </div>
+    <button type="button" class="add-item-btn" id="save-strategy-settings-btn">Save Strategy Settings</button>
+    <p class="field-note" id="strategy-settings-status"></p>
+  </div>
+
+  <div class="card" id="backtest-card">
+    <h2>Test Settings</h2>
+    <p class="card-hint">Replays the last 365 days starting with <strong>$1,000</strong>, running this site on Auto: each day it sells anything whose exit rule tripped, then (if the market filter allows) ranks the universe and buys the top picks with risk-based sizing. It uses the values currently shown in <strong>Scan Settings</strong> and <strong>Strategy &amp; Risk Settings</strong> above &mdash; even if you haven't saved them &mdash; and never places a real order or changes your saved settings.</p>
+    <div class="stocks-actions">
+      <button type="button" class="primary-btn" id="backtest-btn">Test Settings</button>
+      <span class="action-status" id="backtest-status"></span>
+    </div>
+    <div id="backtest-result" hidden>
+      <div class="summary-grid" id="backtest-summary"></div>
+      <canvas id="chart-backtest" width="900" height="280"></canvas>
+      <p class="field-note" id="backtest-legend"></p>
+      <h3 class="bt-sub">Why positions were closed</h3>
+      <p class="card-hint" id="backtest-reasons"></p>
+      <h3 class="bt-sub">Most recent closed trades</h3>
+      <table class="tracker-table" id="backtest-trades">
+        <thead><tr><th>Symbol</th><th>Bought</th><th>Sold</th><th>Days</th><th>Buy</th><th>Sell</th><th>Result</th><th>Exit reason</th></tr></thead>
+        <tbody id="backtest-trades-body"></tbody>
+      </table>
+      <h3 class="bt-sub" id="backtest-open-title">Still held at the end</h3>
+      <table class="tracker-table" id="backtest-open">
+        <thead><tr><th>Symbol</th><th>Bought</th><th>Buy</th><th>Last</th><th>Value</th><th>Result</th></tr></thead>
+        <tbody id="backtest-open-body"></tbody>
+      </table>
+      <p class="card-hint bt-caveat" id="backtest-caveat"></p>
+    </div>
   </div>
 
 </main>

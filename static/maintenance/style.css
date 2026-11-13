@@ -1,0 +1,256 @@
+/* Home/Car Maintenance - logbook styling on top of the shared design system */
+
+.log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.log-header h2 { margin: 0; }
+
+.log-group-title {
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--slate-400);
+  font-weight: 700;
+  margin: 18px 0 8px;
+}
+
+/* A logbook entry: ruled-paper feel with a status stripe down the side */
+.log-entry-card {
+  background: var(--paper);
+  border: 1px solid var(--slate-200);
+  border-left: 5px solid var(--slate-200);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  background-image: repeating-linear-gradient(transparent, transparent 31px, var(--slate-100) 32px);
+}
+
+.log-entry-card.status-ok { border-left-color: var(--green); }
+.log-entry-card.status-soon { border-left-color: #b8860b; }
+.log-entry-card.status-overdue { border-left-color: var(--red); }
+.log-entry-card.status-done { opacity: 0.6; }
+
+.collapse-btn {
+  border: none;
+  background: transparent;
+  color: var(--slate-600);
+  cursor: pointer;
+  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  padding: 0;
+  flex: 0 0 auto;
+}
+.collapse-btn:hover { background: var(--slate-100); }
+
+/* Collapsed: keep only the title row and the status/due line */
+.log-entry-card.collapsed > :not(.entry-top):not(.entry-due) { display: none; }
+.log-entry-card.collapsed { padding-bottom: 6px; }
+.log-entry-card.collapsed .entry-due { margin-bottom: 2px; }
+
+.entry-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.entry-name {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 15.5px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--navy-950);
+}
+
+.entry-name:hover, .entry-name:focus {
+  border-color: var(--slate-200);
+  background: var(--white);
+}
+
+.status-badge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: var(--slate-100);
+  color: var(--slate-600);
+}
+
+.status-badge.status-ok { background: rgba(31, 157, 85, 0.15); color: var(--green); }
+.status-badge.status-soon { background: rgba(184, 134, 11, 0.18); color: #b8860b; }
+.status-badge.status-overdue { background: var(--red-bg); color: var(--red); }
+
+.entry-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px 14px;
+  margin: 10px 0 6px;
+}
+
+.entry-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.entry-field label {
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--slate-400);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.entry-field input,
+.entry-field select,
+.entry-field textarea,
+.log-now-form input {
+  border: 1px solid var(--slate-200);
+  border-radius: 6px;
+  background: var(--white);
+  padding: 7px 9px;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--navy-950);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.entry-field.wide { grid-column: 1 / -1; }
+.entry-field textarea { resize: vertical; }
+
+.entry-due {
+  font-size: 13px;
+  color: var(--slate-600);
+  margin: 4px 0 8px;
+}
+
+.parts-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+.part-row { display: grid; grid-template-columns: 1fr 2fr auto 1fr 28px; gap: 8px; align-items: center; }
+.part-shop { white-space: nowrap; padding: 6px 10px; }
+.parts-editor .entry-btn { align-self: flex-start; }
+
+.recall-status { font-size: 13px; color: var(--slate-600); margin: 6px 0; }
+.recall-status:empty { display: none; }
+
+.req-bad { color: var(--red); font-weight: 700; }
+
+.entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.entry-btn {
+  border: 1px solid var(--slate-200);
+  background: var(--white);
+  color: var(--navy-950);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 650;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.entry-btn:hover { background: var(--slate-100); }
+.entry-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.entry-btn.primary:hover { background: var(--accent-dark); }
+.entry-btn.danger { color: var(--red); }
+
+.log-now-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+  padding: 10px;
+  background: var(--white);
+  border: 1px dashed var(--slate-200);
+  border-radius: 8px;
+}
+
+.log-now-form[hidden] { display: none; }
+
+.history-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12.5px;
+  color: var(--slate-600);
+}
+
+.history-list li {
+  display: flex;
+  gap: 10px;
+  padding: 3px 0;
+  border-bottom: 1px dotted var(--slate-200);
+}
+
+.history-list .hist-date { font-weight: 650; min-width: 92px; color: var(--navy-950); }
+.history-list .hist-del {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: var(--slate-400);
+  cursor: pointer;
+  font-size: 15px;
+}
+.history-list .hist-del:hover { color: var(--red); }
+
+.empty-note { color: var(--slate-400); font-style: italic; padding: 8px 0; }
+
+/* Cars */
+
+.car-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.car-chip {
+  border: 1px solid var(--slate-200);
+  background: var(--white);
+  color: var(--navy-950);
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 13.5px;
+  font-weight: 650;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.car-chip.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.car-header-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px 16px;
+  margin-top: 8px;
+}
+
+.odo-big {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.activity-box { max-height: 360px; overflow-y: auto; }
+.activity-list .activity-ts { min-width: 150px; font-weight: 600; }
+.garage-history { margin-top: 12px; font-size: 13px; }
+.garage-history summary { cursor: pointer; color: var(--slate-600); font-weight: 650; }
+
+.plan-done-check { width: 18px; height: 18px; accent-color: var(--green); }
