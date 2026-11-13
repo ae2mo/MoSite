@@ -36,7 +36,7 @@
   ];
 
   var DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-  var SLOTS = ["lunch", "dinner"];
+  var SLOTS = ["breakfast", "lunch", "dinner"];
   var MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
   // ---------- small helpers ----------
@@ -699,7 +699,7 @@
   // ---------- weekly plan ----------
 
   function buildEmptyDayPlan() {
-    return { lunch: null, dinner: null };
+    return { breakfast: null, lunch: null, dinner: null };
   }
 
   // Each slot holds either null (nothing assigned) or {mealId, multiplier}:

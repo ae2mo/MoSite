@@ -729,6 +729,22 @@
       "favorite": true
     },
     {
+      "id": 18150,
+      "name": "Bacon",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18151,
+          "name": "Bacon",
+          "quantity": 1,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        }
+      ]
+    },
+    {
       "id": 18121,
       "name": "Baked Potatoe",
       "notes": "",
@@ -758,6 +774,43 @@
         }
       ],
       "sideDish": true
+    },
+    {
+      "id": 18136,
+      "name": "Biscuits and Gravy",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18137,
+          "name": "Mary B's Biscuits",
+          "quantity": 1,
+          "unit": "bag",
+          "category": "Frozen"
+        },
+        {
+          "id": 18138,
+          "name": "Jimmy Dean Hot Pork Sausage Roll",
+          "quantity": 16,
+          "unit": "oz",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18139,
+          "name": "Flour",
+          "quantity": 0.25,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18140,
+          "name": "Half and Half",
+          "quantity": 1,
+          "unit": "quart",
+          "category": "Dairy & Eggs"
+        }
+      ]
     },
     {
       "id": 18074,
@@ -847,6 +900,108 @@
       ]
     },
     {
+      "id": 18155,
+      "name": "Cory's Jambalaya",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18156,
+          "name": "Whole Chicken",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18157,
+          "name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18158,
+          "name": "Green Bell Pepper",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18159,
+          "name": "Celery",
+          "quantity": 2,
+          "unit": "stalks",
+          "category": "Produce"
+        },
+        {
+          "id": 18160,
+          "name": "Chicken Broth",
+          "quantity": 7,
+          "unit": "cups",
+          "category": "Pantry"
+        },
+        {
+          "id": 18161,
+          "name": "Minced Garlic",
+          "quantity": 2,
+          "unit": "tbsp",
+          "category": "Produce"
+        },
+        {
+          "id": 18162,
+          "name": "Pickled Jalapenos",
+          "quantity": 0.25,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18163,
+          "name": "Long Grain Rice",
+          "quantity": 2,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18164,
+          "name": "Andouille Sausage",
+          "quantity": 1,
+          "unit": "pack",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18165,
+          "name": "AP Flour",
+          "quantity": 0.5,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18166,
+          "name": "(not virgin)Olive Oil",
+          "quantity": 0.5,
+          "unit": "cup",
+          "category": "Pantry"
+        }
+      ]
+    },
+    {
+      "id": 18141,
+      "name": "Eggs",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18142,
+          "name": "Eggs",
+          "quantity": 6,
+          "unit": "whole",
+          "category": "Dairy & Eggs"
+        }
+      ]
+    },
+    {
       "id": 18090,
       "name": "Hamburger Helper Cheeseburger Macaroni",
       "notes": "",
@@ -889,6 +1044,22 @@
           "quantity": 2.25,
           "unit": "cup",
           "category": "Dairy & Eggs"
+        }
+      ]
+    },
+    {
+      "id": 18152,
+      "name": "Hashbrowns",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18153,
+          "name": "Hashbrown Patties",
+          "quantity": 1,
+          "unit": "box",
+          "category": "Frozen"
         }
       ]
     },
@@ -953,6 +1124,50 @@
         }
       ],
       "sideDish": true
+    },
+    {
+      "id": 18144,
+      "name": "Pancakes",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18145,
+          "name": "Dry Pancake Mix",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18146,
+          "name": "Milk",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18147,
+          "name": "Egg",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18148,
+          "name": "Butter",
+          "quantity": 1,
+          "unit": "stick",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18149,
+          "name": "syrup",
+          "quantity": 1,
+          "unit": "bottle",
+          "category": "Pantry"
+        }
+      ]
     },
     {
       "id": 18132,
@@ -1102,8 +1317,10 @@
         "dinner": null,
         "sides": {
           "lunch": [],
-          "dinner": []
-        }
+          "dinner": [],
+          "breakfast": []
+        },
+        "breakfast": null
       },
       "Tuesday": {
         "lunch": null,
@@ -1113,8 +1330,10 @@
         },
         "sides": {
           "lunch": [],
-          "dinner": []
-        }
+          "dinner": [],
+          "breakfast": []
+        },
+        "breakfast": null
       },
       "Wednesday": {
         "lunch": null,
@@ -1124,8 +1343,15 @@
         },
         "sides": {
           "lunch": [],
-          "dinner": []
-        }
+          "dinner": [
+            {
+              "mealId": 18105,
+              "multiplier": 1
+            }
+          ],
+          "breakfast": []
+        },
+        "breakfast": null
       },
       "Thursday": {
         "lunch": null,
@@ -1135,8 +1361,10 @@
         },
         "sides": {
           "lunch": [],
-          "dinner": []
-        }
+          "dinner": [],
+          "breakfast": []
+        },
+        "breakfast": null
       },
       "Friday": {
         "lunch": null,
@@ -1146,54 +1374,134 @@
         },
         "sides": {
           "lunch": [],
-          "dinner": []
-        }
+          "dinner": [],
+          "breakfast": []
+        },
+        "breakfast": null
       },
       "Saturday": {
         "lunch": null,
         "dinner": null,
         "sides": {
           "lunch": [],
-          "dinner": []
-        }
+          "dinner": [],
+          "breakfast": []
+        },
+        "breakfast": null
       },
       "Sunday": {
         "lunch": null,
         "dinner": null,
         "sides": {
           "lunch": [],
-          "dinner": []
-        }
+          "dinner": [],
+          "breakfast": []
+        },
+        "breakfast": null
       }
     },
     "2026-11-16": {
       "Monday": {
         "lunch": null,
-        "dinner": null
+        "dinner": {
+          "mealId": 18096,
+          "multiplier": 1
+        },
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        },
+        "breakfast": null
       },
       "Tuesday": {
         "lunch": null,
-        "dinner": null
+        "dinner": {
+          "mealId": 18012,
+          "multiplier": 1
+        },
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        },
+        "breakfast": null
       },
       "Wednesday": {
         "lunch": null,
-        "dinner": null
+        "dinner": {
+          "mealId": 18130,
+          "multiplier": 1
+        },
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": [
+            {
+              "mealId": 17987,
+              "multiplier": 1
+            }
+          ]
+        },
+        "breakfast": null
       },
       "Thursday": {
         "lunch": null,
-        "dinner": null
+        "dinner": {
+          "mealId": 18093,
+          "multiplier": 1
+        },
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        },
+        "breakfast": null
       },
       "Friday": {
         "lunch": null,
-        "dinner": null
+        "dinner": {
+          "mealId": 18061,
+          "multiplier": 1
+        },
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        },
+        "breakfast": null
       },
       "Saturday": {
         "lunch": null,
-        "dinner": null
+        "dinner": null,
+        "sides": {
+          "breakfast": [
+            {
+              "mealId": 18141,
+              "multiplier": 1
+            },
+            {
+              "mealId": 18150,
+              "multiplier": 1
+            }
+          ],
+          "lunch": [],
+          "dinner": []
+        },
+        "breakfast": {
+          "mealId": 18136,
+          "multiplier": 1
+        }
       },
       "Sunday": {
         "lunch": null,
-        "dinner": null
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        },
+        "breakfast": null
       }
     }
   },
@@ -1215,7 +1523,7 @@
       "checked": {}
     }
   },
-  "nextId": 18136,
-  "activeWeek": "2026-11-09",
+  "nextId": 18167,
+  "activeWeek": "2026-11-16",
   "ingredientQuantityBasisFixed": true
 }
