@@ -17,6 +17,9 @@ homeassistant_config.json
 *.pdf
 test.txt
 
+# Portable Python downloaded by Start Budget Site.bat on PCs without Python
+python-embed/
+
 # Python bytecode cache, temp files
 __pycache__/
 *.pyc
