@@ -2,7 +2,6 @@
 # defaults for these automatically the first time it runs, so nothing
 # breaks by excluding them; they just aren't tracked by git.
 data.json
-meals_data.json
 maintenance_data.json
 stocks_data.json
 backups/

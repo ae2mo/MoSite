@@ -1,0 +1,1221 @@
+{
+  "error": "not found",
+  "meals": [
+    {
+      "id": 18096,
+      "name": "Chicken and Dumplings",
+      "notes": "",
+      "instructions": "",
+      "servings": 1,
+      "ingredients": [
+        {
+          "id": 18097,
+          "name": "Cream of Celery",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 18098,
+          "name": "Cream of Chicken",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 18099,
+          "name": "Chicken Broth",
+          "quantity": 1,
+          "unit": "box",
+          "category": "Pantry"
+        },
+        {
+          "id": 18102,
+          "name": "Rotisserie chicken",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18103,
+          "name": "Tortillas",
+          "quantity": 1,
+          "unit": "pack",
+          "category": "Bakery"
+        },
+        {
+          "id": 18104,
+          "name": "Can Biscuits",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Other"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 18130,
+      "name": "Chicken Breast",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18131,
+          "name": "Chicken Breast",
+          "quantity": 4,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 18128,
+      "name": "Chicken Thighs",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18129,
+          "name": "Chicken Thighs",
+          "quantity": 6,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 18061,
+      "name": "Easy Chili Recipe",
+      "notes": "",
+      "instructions": "",
+      "sourceUrl": "https://www.momendeavors.com/easy-chili-recipe/",
+      "servings": 8,
+      "ingredients": [
+        {
+          "id": 18053,
+          "name": "onion (chopped)",
+          "quantity": 1,
+          "unit": "medium",
+          "category": "Produce"
+        },
+        {
+          "id": 18054,
+          "name": "lean ground beef",
+          "quantity": 2,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18056,
+          "name": "16oz cans diced tomatoes",
+          "quantity": 2,
+          "unit": "can",
+          "category": "Produce"
+        },
+        {
+          "id": 18058,
+          "name": "15.5oz cans kidney beans (drained)",
+          "quantity": 2,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 18059,
+          "name": "chili package",
+          "quantity": 2,
+          "unit": "pack",
+          "category": "Other"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 17987,
+      "name": "Isreali Cous Cous Salad",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 17988,
+          "name": "Israaeli Pearl Pasta",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 17989,
+          "name": "Lemon",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 17990,
+          "name": "Extra Virgin Olive Oil",
+          "quantity": 3,
+          "unit": "tbsp",
+          "category": "Pantry"
+        },
+        {
+          "id": 17991,
+          "name": "Smoked Paprika",
+          "quantity": 1,
+          "unit": "tsp",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 17992,
+          "name": "Dijon Mustard",
+          "quantity": 2,
+          "unit": "tsp",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 17993,
+          "name": "Kosher Salt",
+          "quantity": 1,
+          "unit": "tsp",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 17994,
+          "name": "Black Pepper",
+          "quantity": 0.25,
+          "unit": "tsp",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 17995,
+          "name": "English Cucumber ",
+          "quantity": 1,
+          "unit": "medium",
+          "category": "Produce"
+        },
+        {
+          "id": 17996,
+          "name": "Cherrry Tomatoes",
+          "quantity": 1,
+          "unit": "pint",
+          "category": "Produce"
+        },
+        {
+          "id": 17997,
+          "name": "Crumbled Feta",
+          "quantity": 0.5,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 17998,
+          "name": "Mint Leaves",
+          "quantity": 0.25,
+          "unit": "cup",
+          "category": "Produce"
+        }
+      ],
+      "favorite": true,
+      "sideDish": true
+    },
+    {
+      "id": 18039,
+      "name": "Lemon Chicken Orzo Soup",
+      "notes": "Imported from https://www.themediterraneandish.com/lemon-chicken-orzo-soup/",
+      "instructions": "1. Soften the vegetables. Heat the olive oil in a large Dutch oven or heavy cooking pot over medium-high heat. When the oil shimmers, add the onion, celery, carrots, and garlic. Season with a good pinch of salt and black pepper. Cook, stirring occasionally, until the vegetables have softened, about 5 minutes.\n2. Poach the chicken. Add the chicken, chicken stock, and water. Season with the oregano, turmeric, red pepper flakes, and another pinch of salt and black pepper. Bring to a boil, then reduce the heat to medium-low. Simmer until the chicken is nearly cooked through, 10 to 15 minutes; it will finish cooking after being shredded and returned to the soup. Skim off any foam that rises to the surface.\n3. Add the orzo and peas. Transfer the chicken to a rimmed plate. Add the orzo and frozen peas to the pot. Raise the heat to bring the liquid back to a boil.\n4. Shred the chicken and finish cooking. While the liquid returns to a boil, use two forks to shred the chicken into smaller pieces. Return it to the pot and cook until the orzo is tender with a slight bite, about 8 minutes longer. Make sure the chicken is fully cooked and reaches 165\u00b0F before serving.\n5. Finish and serve. Turn off the heat and stir in the lemon juice and zest, green onions, and parsley. Ladle into bowls and serve.",
+      "sourceUrl": "https://www.themediterraneandish.com/lemon-chicken-orzo-soup/",
+      "servings": 6,
+      "ingredients": [
+        {
+          "id": 18021,
+          "name": "extra virgin olive oil",
+          "quantity": 2,
+          "unit": "tablespoons",
+          "category": "Pantry"
+        },
+        {
+          "id": 18022,
+          "name": "yellow onion, (chopped)",
+          "quantity": 1,
+          "unit": "",
+          "category": "Produce"
+        },
+        {
+          "id": 18023,
+          "name": "celery stalks, (chopped)",
+          "quantity": 2,
+          "unit": "",
+          "category": "Produce"
+        },
+        {
+          "id": 18024,
+          "name": "carrots, (peeled and sliced into 1/4-inch rounds)",
+          "quantity": 2,
+          "unit": "",
+          "category": "Produce"
+        },
+        {
+          "id": 18025,
+          "name": "garlic cloves, (minced)",
+          "quantity": 3,
+          "unit": "",
+          "category": "Produce"
+        },
+        {
+          "id": 18026,
+          "name": "Kosher salt",
+          "quantity": 1,
+          "unit": "",
+          "category": "Pantry"
+        },
+        {
+          "id": 18027,
+          "name": "Black pepper",
+          "quantity": 1,
+          "unit": "",
+          "category": "Other"
+        },
+        {
+          "id": 18028,
+          "name": "boneless, skinless chicken breast ((about 2 breast halves))",
+          "quantity": 1,
+          "unit": "pound",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18029,
+          "name": "chicken stock",
+          "quantity": 4,
+          "unit": "cups",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18030,
+          "name": "water",
+          "quantity": 2,
+          "unit": "cups",
+          "category": "Other"
+        },
+        {
+          "id": 18031,
+          "name": "dried oregano",
+          "quantity": 2,
+          "unit": "teaspoons",
+          "category": "Other"
+        },
+        {
+          "id": 18032,
+          "name": "turmeric",
+          "quantity": 0.5,
+          "unit": "teaspoon",
+          "category": "Other"
+        },
+        {
+          "id": 18033,
+          "name": "red pepper flakes ((or 1 teaspoon Aleppo pepper))",
+          "quantity": 0.5,
+          "unit": "teaspoon",
+          "category": "Beverages"
+        },
+        {
+          "id": 18034,
+          "name": "uncooked orzo",
+          "quantity": 0.75,
+          "unit": "cup",
+          "category": "Other"
+        },
+        {
+          "id": 18035,
+          "name": "frozen peas",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Frozen"
+        },
+        {
+          "id": 18036,
+          "name": "lemons, (zested and juiced)",
+          "quantity": 2,
+          "unit": "",
+          "category": "Produce"
+        },
+        {
+          "id": 18037,
+          "name": "green onions, (trimmed and chopped (whites and green parts))",
+          "quantity": 2,
+          "unit": "",
+          "category": "Produce"
+        },
+        {
+          "id": 18038,
+          "name": "chopped fresh parsley",
+          "quantity": 0.5,
+          "unit": "cup",
+          "category": "Produce"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 17999,
+      "name": "Meatloaf",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18000,
+          "name": "Liptons Onion Soup Mix",
+          "quantity": 2,
+          "unit": "pack",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 18001,
+          "name": "Ground Beef",
+          "quantity": 4,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18002,
+          "name": "Egg",
+          "quantity": 2,
+          "unit": "whole",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18003,
+          "name": "Worcestershire",
+          "quantity": 2,
+          "unit": "tbsp",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 18005,
+          "name": "Ketchup",
+          "quantity": 8,
+          "unit": "tbsp",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 18100,
+          "name": "Breadcrumbs",
+          "quantity": 0.5,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18101,
+          "name": "Onion",
+          "quantity": 1,
+          "unit": "Large",
+          "category": "Produce"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 17979,
+      "name": "Mexican Casserole",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 17980,
+          "name": "Cream of Chicken",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 17981,
+          "name": "Cream of Mushroom",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 17982,
+          "name": "Ground Beef",
+          "quantity": 1,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 17983,
+          "name": "Rotel",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 17984,
+          "name": "Tortillas",
+          "quantity": 1,
+          "unit": "pack",
+          "category": "Bakery"
+        },
+        {
+          "id": 17985,
+          "name": "Kidney Beans",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 17986,
+          "name": "Cheddar",
+          "quantity": 4,
+          "unit": "oz",
+          "category": "Dairy & Eggs"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 18089,
+      "name": "Pot Roast Recipe",
+      "notes": "Imported from https://www.spendwithpennies.com/perfect-pot-roast/",
+      "instructions": "1. Preheat oven to 300\u00b0F.\n2. Season roast with salt and pepper.\n3. In a large Dutch oven, heat 1 tablespoon olive oil over medium-high heat. Sear the roast on each side until browned, about 4 minutes per side adding more oil if needed.\n4. Arrange onions around the roast. Combine broth, wine, garlic, rosemary, and thyme. Pour over the roast. Add bay leaf.\n5. Bring just to a simmer on the stovetop over medium-high heat. Once the broth is simmering, cover and place in the oven and cook 2 hours.\n6. Add potatoes, carrots, and celery, cover and cook an additional 2 hours (for a 4 lb. roast) or until the roast and potatoes are fork-tender.\n7. Discard bay leaf. Gently pull beef into large pieces with a fork or slice into thick pieces. Serve with juices or make gravy (below) if desired.",
+      "sourceUrl": "https://www.spendwithpennies.com/perfect-pot-roast/",
+      "servings": 8,
+      "ingredients": [
+        {
+          "id": 18075,
+          "name": "olive oil",
+          "quantity": 1,
+          "unit": "tablespoon",
+          "category": "Pantry"
+        },
+        {
+          "id": 18076,
+          "name": "beef chuck roast (or rump roast)",
+          "quantity": 4,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18077,
+          "name": "yellow onion",
+          "quantity": 1,
+          "unit": "large",
+          "category": "Produce"
+        },
+        {
+          "id": 18078,
+          "name": "beef broth",
+          "quantity": 2,
+          "unit": "cups",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18079,
+          "name": "red wine (optionalfor roast)",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Beverages"
+        },
+        {
+          "id": 18080,
+          "name": "garlic",
+          "quantity": 4,
+          "unit": "cloves",
+          "category": "Produce"
+        },
+        {
+          "id": 18081,
+          "name": "dried rosemary",
+          "quantity": 0.5,
+          "unit": "teaspoon",
+          "category": "Other"
+        },
+        {
+          "id": 18082,
+          "name": "dried thyme leaves",
+          "quantity": 0.5,
+          "unit": "teaspoon",
+          "category": "Other"
+        },
+        {
+          "id": 18083,
+          "name": "bay leaf",
+          "quantity": 1,
+          "unit": "",
+          "category": "Other"
+        },
+        {
+          "id": 18084,
+          "name": "baby potatoes",
+          "quantity": 1,
+          "unit": "pound",
+          "category": "Produce"
+        },
+        {
+          "id": 18085,
+          "name": "carrots",
+          "quantity": 2,
+          "unit": "large",
+          "category": "Produce"
+        },
+        {
+          "id": 18086,
+          "name": "celery",
+          "quantity": 2,
+          "unit": "ribs",
+          "category": "Produce"
+        },
+        {
+          "id": 18087,
+          "name": "all-purpose flour",
+          "quantity": 1,
+          "unit": "",
+          "category": "Pantry"
+        },
+        {
+          "id": 18088,
+          "name": "butter",
+          "quantity": 1,
+          "unit": "stick",
+          "category": "Dairy & Eggs"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 18006,
+      "name": "Roasted Vegetables",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18007,
+          "name": "Chicken",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18008,
+          "name": "Baby Potatoes(sub Sweet Potatoes)",
+          "quantity": 1,
+          "unit": "bag",
+          "category": "Produce"
+        },
+        {
+          "id": 18009,
+          "name": "Carrots",
+          "quantity": 3,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18011,
+          "name": "Brussel Sprouts",
+          "quantity": 1,
+          "unit": "bag",
+          "category": "Produce"
+        },
+        {
+          "id": 18116,
+          "name": "Onion",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Produce"
+        }
+      ],
+      "favorite": true,
+      "sideDish": true
+    },
+    {
+      "id": 18012,
+      "name": "Tacos",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18013,
+          "name": "Ground Beef ",
+          "quantity": 2,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18014,
+          "name": "Taco Seasoning",
+          "quantity": 2,
+          "unit": "pack",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 18015,
+          "name": "Tomatoes",
+          "quantity": 2,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18016,
+          "name": "Cheddar ",
+          "quantity": 8,
+          "unit": "oz",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18017,
+          "name": "Taco Sauce",
+          "quantity": 1,
+          "unit": "bottle",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 18018,
+          "name": "Lettuce",
+          "quantity": 1,
+          "unit": "head",
+          "category": "Produce"
+        },
+        {
+          "id": 18019,
+          "name": "Tortillas",
+          "quantity": 1,
+          "unit": "pack",
+          "category": "Bakery"
+        },
+        {
+          "id": 18125,
+          "name": "Sour Cream",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18126,
+          "name": "guacamole",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Produce"
+        },
+        {
+          "id": 18127,
+          "name": "Taco Sauce",
+          "quantity": 1,
+          "unit": "bottle",
+          "category": "Pantry"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 18117,
+      "name": "Whole Chicken",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18118,
+          "name": "Chicken",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        }
+      ],
+      "favorite": true
+    },
+    {
+      "id": 18121,
+      "name": "Baked Potatoe",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18122,
+          "name": "Potatoe",
+          "quantity": 4,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18123,
+          "name": "Butter",
+          "quantity": 1,
+          "unit": "stick",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18124,
+          "name": "Sour Cream",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        }
+      ],
+      "sideDish": true
+    },
+    {
+      "id": 18074,
+      "name": "Chicken Pesto Pasta",
+      "notes": "Imported from https://www.themediterraneandish.com/creamy-chicken-pesto-pasta/",
+      "instructions": "1. Season the chicken. Add the chicken to a bowl and season with the Italian seasoning and a big pinch each of kosher salt and black pepper. Toss to coat.\n2. Cook the pasta. Bring a medium pot of water to a boil and salt it well with about 1 tablespoon of salt. Drop the pasta in the boiling water and cook until al dente according to package instructions (about 8 to 9 minutes).\n3. Cook the chicken. While the pasta is cooking, add the olive oil to a large non-stick skillet and heat over medium-high. Add the chicken and cook, tossing occasionally, until golden brown on the outside and cooked through, about 7 to 8 minutes.\n4. Drain the pasta. When the pasta is ready, reserve about 1 cup of the cooking water and drain.\n5. Combine. To the pan with the chicken, lower the heat and stir in the cooked pasta, heavy cream, parmesan, and sundried tomatoes. Stir until everything is well combined. If it looks a bit dry, add a splash of the pasta cooking water (a couple tablespoons at a time) until the pasta is glossy and coated in the creamy sauce.\n6. Add the pesto. Turn off the heat and take the pan off the burner. Stir in the basil pesto and finish with a sprinkle of grated parmesan, red pepper flakes, and basil leaves. Serve.",
+      "sourceUrl": "https://www.themediterraneandish.com/creamy-chicken-pesto-pasta/",
+      "servings": 6,
+      "ingredients": [
+        {
+          "id": 18062,
+          "name": "boneless skinless chicken breast, (cut into 1-inch pieces)",
+          "quantity": 1,
+          "unit": "pound",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18063,
+          "name": "Italian seasoning",
+          "quantity": 1,
+          "unit": "teaspoon",
+          "category": "Other"
+        },
+        {
+          "id": 18064,
+          "name": "Kosher salt",
+          "quantity": 1,
+          "unit": "",
+          "category": "Pantry"
+        },
+        {
+          "id": 18065,
+          "name": "Black pepper",
+          "quantity": 1,
+          "unit": "",
+          "category": "Other"
+        },
+        {
+          "id": 18066,
+          "name": "penne pasta, (preferably with ridges)",
+          "quantity": 8,
+          "unit": "ounces",
+          "category": "Pantry"
+        },
+        {
+          "id": 18067,
+          "name": "extra virgin olive oil",
+          "quantity": 2,
+          "unit": "tablespoons",
+          "category": "Pantry"
+        },
+        {
+          "id": 18069,
+          "name": "parmesan cheese, (plus more for serving if you like)",
+          "quantity": 0.25,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18070,
+          "name": "sun dried tomatoes, (drained if packed in oil)",
+          "quantity": 0.25,
+          "unit": "cup",
+          "category": "Produce"
+        },
+        {
+          "id": 18071,
+          "name": "basil pesto, (homemade or quality store-bought, plus more if you like)",
+          "quantity": 0.5,
+          "unit": "cup",
+          "category": "Produce"
+        },
+        {
+          "id": 18072,
+          "name": "to 1 teaspoon red pepper flakes",
+          "quantity": 0.5,
+          "unit": "",
+          "category": "Beverages"
+        },
+        {
+          "id": 18073,
+          "name": "Handful of torn basil leaves, (for garnish)",
+          "quantity": 1,
+          "unit": "",
+          "category": "Produce"
+        }
+      ]
+    },
+    {
+      "id": 18090,
+      "name": "Hamburger Helper Cheeseburger Macaroni",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18091,
+          "name": "Ground Beef ",
+          "quantity": 1,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18092,
+          "name": "Milk",
+          "quantity": 2,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        }
+      ]
+    },
+    {
+      "id": 18093,
+      "name": "Hamburger Helper Stroganoff",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18094,
+          "name": "Ground Beef",
+          "quantity": 1,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18095,
+          "name": "Milk",
+          "quantity": 2.25,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        }
+      ]
+    },
+    {
+      "id": 18105,
+      "name": "Mashed Potatoes",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18106,
+          "name": "Potatoes",
+          "quantity": 5,
+          "unit": "large",
+          "category": "Produce"
+        },
+        {
+          "id": 18107,
+          "name": "Butter",
+          "quantity": 1,
+          "unit": "stick",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18108,
+          "name": "Milk(Cream)",
+          "quantity": 1,
+          "unit": "cup",
+          "category": "Dairy & Eggs"
+        }
+      ],
+      "sideDish": true
+    },
+    {
+      "id": 18109,
+      "name": "Mashed Potatoes (Boxed)",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18110,
+          "name": "Boxed Potatoes",
+          "quantity": 2,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18111,
+          "name": "Butter",
+          "quantity": 1,
+          "unit": "Stick",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18112,
+          "name": "Milk",
+          "quantity": 1,
+          "unit": "Cup",
+          "category": "Dairy & Eggs"
+        }
+      ],
+      "sideDish": true
+    },
+    {
+      "id": 18132,
+      "name": "Pork Chops",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18133,
+          "name": "Pork Chops",
+          "quantity": 4,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        }
+      ]
+    },
+    {
+      "id": 18134,
+      "name": "Rice",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18135,
+          "name": "Rice",
+          "quantity": 2,
+          "unit": "cup",
+          "category": "Pantry"
+        }
+      ]
+    },
+    {
+      "id": 18119,
+      "name": "Stake",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18120,
+          "name": "Steak",
+          "quantity": 4,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        }
+      ]
+    },
+    {
+      "id": 18113,
+      "name": "Sweat Potatoes",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18114,
+          "name": "Sweet Potatoes",
+          "quantity": 4,
+          "unit": "large",
+          "category": "Produce"
+        }
+      ],
+      "sideDish": true
+    }
+  ],
+  "plans": {
+    "2026-07-27": {
+      "Monday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 18039,
+          "servings": 6
+        }
+      },
+      "Tuesday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Wednesday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Thursday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Friday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Saturday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Sunday": {
+        "lunch": null,
+        "dinner": null
+      }
+    },
+    "2026-11-02": {
+      "Monday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 18039,
+          "servings": 6
+        }
+      },
+      "Tuesday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 18006,
+          "servings": 4
+        }
+      },
+      "Wednesday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 18012,
+          "servings": 4
+        }
+      },
+      "Thursday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 18061,
+          "servings": 8
+        }
+      },
+      "Friday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Saturday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Sunday": {
+        "lunch": null,
+        "dinner": null
+      }
+    },
+    "2026-11-09": {
+      "Monday": {
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Tuesday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 17979,
+          "multiplier": 2
+        },
+        "sides": {
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Wednesday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 17999,
+          "multiplier": 1
+        },
+        "sides": {
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Thursday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 18074,
+          "multiplier": 1
+        },
+        "sides": {
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Friday": {
+        "lunch": null,
+        "dinner": {
+          "mealId": 18061,
+          "multiplier": 1
+        },
+        "sides": {
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Saturday": {
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Sunday": {
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "lunch": [],
+          "dinner": []
+        }
+      }
+    },
+    "2026-11-16": {
+      "Monday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Tuesday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Wednesday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Thursday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Friday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Saturday": {
+        "lunch": null,
+        "dinner": null
+      },
+      "Sunday": {
+        "lunch": null,
+        "dinner": null
+      }
+    }
+  },
+  "shoppingLists": {
+    "2026-07-27": {
+      "extraItems": [],
+      "checked": {}
+    },
+    "2026-11-02": {
+      "extraItems": [],
+      "checked": {}
+    },
+    "2026-11-09": {
+      "extraItems": [],
+      "checked": {}
+    },
+    "2026-11-16": {
+      "extraItems": [],
+      "checked": {}
+    }
+  },
+  "nextId": 18136,
+  "activeWeek": "2026-11-09",
+  "ingredientQuantityBasisFixed": true
+}
