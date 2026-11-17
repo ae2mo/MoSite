@@ -21,7 +21,8 @@ import urllib.error
 import urllib.request
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(BASE_DIR, "homeassistant_config.json")
+DATA_DIR = os.environ.get("MOSITE_DATA_DIR") or BASE_DIR  # see server.py
+CONFIG_FILE = os.path.join(DATA_DIR, "homeassistant_config.json")
 
 
 # ---------- config (base URL / token - never hardcoded, never committed) ----------

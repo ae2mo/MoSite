@@ -108,6 +108,14 @@ def start_http_server():
         )
     thread = threading.Thread(target=httpd.serve_forever, daemon=True)
     thread.start()
+    # server.py's main() starts the Stock Trader's hourly Auto scheduler;
+    # this launcher bypasses main(), so start it here too - otherwise Auto
+    # mode never runs when the site is started from the tray.
+    try:
+        import stocks_engine
+        stocks_engine.start_scheduler()
+    except Exception:
+        pass
     return httpd
 
 

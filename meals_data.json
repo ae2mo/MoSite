@@ -700,13 +700,6 @@
           "quantity": 1,
           "unit": "cup",
           "category": "Produce"
-        },
-        {
-          "id": 18127,
-          "name": "Taco Sauce",
-          "quantity": 1,
-          "unit": "bottle",
-          "category": "Pantry"
         }
       ],
       "favorite": true
@@ -1186,6 +1179,78 @@
       ]
     },
     {
+      "id": 18179,
+      "name": "Red Beans and Rice",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18180,
+          "name": "Dry Kidney Beans",
+          "quantity": 1,
+          "unit": "pound",
+          "category": "Pantry"
+        },
+        {
+          "id": 18181,
+          "name": "Onion",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18182,
+          "name": "Celery",
+          "quantity": 2,
+          "unit": "stalks",
+          "category": "Produce"
+        },
+        {
+          "id": 18183,
+          "name": "Green Bell Pepper",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18184,
+          "name": "Bay Leaf",
+          "quantity": 2,
+          "unit": "Leaf",
+          "category": "Spices & Condiments"
+        },
+        {
+          "id": 18185,
+          "name": "Minced Garlic",
+          "quantity": 2,
+          "unit": "tbps",
+          "category": "Produce"
+        },
+        {
+          "id": 18186,
+          "name": "Long Grain Rice",
+          "quantity": 4,
+          "unit": "cup",
+          "category": "Pantry"
+        },
+        {
+          "id": 18187,
+          "name": "Water",
+          "quantity": 2,
+          "unit": "qt",
+          "category": "Other"
+        },
+        {
+          "id": 18188,
+          "name": "Bacon unsmoked",
+          "quantity": 1,
+          "unit": "lbs",
+          "category": "Meat & Seafood"
+        }
+      ]
+    },
+    {
       "id": 18134,
       "name": "Rice",
       "notes": "",
@@ -1233,6 +1298,92 @@
         }
       ],
       "sideDish": true
+    },
+    {
+      "id": 18167,
+      "name": "Tortilla Soup",
+      "notes": "",
+      "instructions": "",
+      "servings": 4,
+      "ingredients": [
+        {
+          "id": 18168,
+          "name": "Rotisserie chicken",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Meat & Seafood"
+        },
+        {
+          "id": 18169,
+          "name": "Canned Hominy",
+          "quantity": 25,
+          "unit": "oz",
+          "category": "Pantry"
+        },
+        {
+          "id": 18170,
+          "name": "Canned Chopped Green Chillies",
+          "quantity": 2,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 18171,
+          "name": "Sweet Corn",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 18172,
+          "name": "Black Beans",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 18173,
+          "name": "Red Enchalada Sauce",
+          "quantity": 1,
+          "unit": "can",
+          "category": "Pantry"
+        },
+        {
+          "id": 18174,
+          "name": "Chicken Stock",
+          "quantity": 48,
+          "unit": "oz",
+          "category": "Pantry"
+        },
+        {
+          "id": 18175,
+          "name": "Yellow Onion",
+          "quantity": 1,
+          "unit": "whole",
+          "category": "Produce"
+        },
+        {
+          "id": 18176,
+          "name": "Shredded Cheddar ",
+          "quantity": 12,
+          "unit": "oz",
+          "category": "Dairy & Eggs"
+        },
+        {
+          "id": 18177,
+          "name": "Cilantro",
+          "quantity": 1,
+          "unit": "bunch",
+          "category": "Produce"
+        },
+        {
+          "id": 18178,
+          "name": "Tortillas",
+          "quantity": 1,
+          "unit": "bag",
+          "category": "Bakery"
+        }
+      ]
     }
   ],
   "plans": {
@@ -1391,7 +1542,10 @@
       },
       "Sunday": {
         "lunch": null,
-        "dinner": null,
+        "dinner": {
+          "mealId": 18179,
+          "multiplier": 1
+        },
         "sides": {
           "lunch": [],
           "dinner": [],
@@ -1404,7 +1558,7 @@
       "Monday": {
         "lunch": null,
         "dinner": {
-          "mealId": 18096,
+          "mealId": 18093,
           "multiplier": 1
         },
         "sides": {
@@ -1448,7 +1602,7 @@
       "Thursday": {
         "lunch": null,
         "dinner": {
-          "mealId": 18093,
+          "mealId": 18167,
           "multiplier": 1
         },
         "sides": {
@@ -1461,7 +1615,7 @@
       "Friday": {
         "lunch": null,
         "dinner": {
-          "mealId": 18061,
+          "mealId": 18096,
           "multiplier": 1
         },
         "sides": {
@@ -1473,7 +1627,10 @@
       },
       "Saturday": {
         "lunch": null,
-        "dinner": null,
+        "dinner": {
+          "mealId": 18128,
+          "multiplier": 1
+        },
         "sides": {
           "breakfast": [
             {
@@ -1486,7 +1643,12 @@
             }
           ],
           "lunch": [],
-          "dinner": []
+          "dinner": [
+            {
+              "mealId": 18113,
+              "multiplier": 1
+            }
+          ]
         },
         "breakfast": {
           "mealId": 18136,
@@ -1495,13 +1657,88 @@
       },
       "Sunday": {
         "lunch": null,
-        "dinner": null,
+        "dinner": {
+          "mealId": 18179,
+          "multiplier": 1
+        },
         "sides": {
           "breakfast": [],
           "lunch": [],
           "dinner": []
         },
         "breakfast": null
+      }
+    },
+    "2026-11-23": {
+      "Monday": {
+        "breakfast": null,
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Tuesday": {
+        "breakfast": null,
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Wednesday": {
+        "breakfast": null,
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Thursday": {
+        "breakfast": null,
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Friday": {
+        "breakfast": null,
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Saturday": {
+        "breakfast": null,
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        }
+      },
+      "Sunday": {
+        "breakfast": null,
+        "lunch": null,
+        "dinner": null,
+        "sides": {
+          "breakfast": [],
+          "lunch": [],
+          "dinner": []
+        }
       }
     }
   },
@@ -1521,9 +1758,13 @@
     "2026-11-16": {
       "extraItems": [],
       "checked": {}
+    },
+    "2026-11-23": {
+      "extraItems": [],
+      "checked": {}
     }
   },
-  "nextId": 18167,
+  "nextId": 18189,
   "activeWeek": "2026-11-16",
   "ingredientQuantityBasisFixed": true
 }

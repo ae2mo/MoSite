@@ -1,0 +1,9 @@
+# Left out of the Home Assistant add-on image
+python-embed/
+__pycache__/
+*.pyc
+*.tmp
+*.pdf
+.git/
+tray_launcher_error.log
+test.txt

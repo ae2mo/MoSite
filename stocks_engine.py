@@ -48,8 +48,9 @@ import threading
 from datetime import datetime, timedelta, timezone
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(BASE_DIR, "stocks_config.json")
-DATA_FILE = os.path.join(BASE_DIR, "stocks_data.json")
+DATA_DIR = os.environ.get("MOSITE_DATA_DIR") or BASE_DIR  # see server.py
+CONFIG_FILE = os.path.join(DATA_DIR, "stocks_config.json")
+DATA_FILE = os.path.join(DATA_DIR, "stocks_data.json")
 
 DATA_LOCK = threading.Lock()
 
@@ -279,6 +280,26 @@ def _position_tracking_update_peak(symbol, current_price):
         tracking["peakPrice"] = current_price
         _save_data(data)
     return tracking
+
+
+def _today_key():
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+
+def _record_sell(symbol):
+    """Remembers which symbols were sold today, so a buy later the same day
+    (e.g. the next hourly Auto cycle) doesn't immediately buy them back."""
+    data = _load_data()
+    today = _today_key()
+    sells = {s: d for s, d in (data.get("recentSells") or {}).items() if d == today}
+    sells[symbol] = today
+    data["recentSells"] = sells
+    _save_data(data)
+
+
+def _sold_today():
+    today = _today_key()
+    return {s for s, d in (_load_data().get("recentSells") or {}).items() if d == today}
 
 
 def get_history():
@@ -820,17 +841,35 @@ def run_buy():
 
     client, cfg = _trading_client()
     account = client.get_account()
-    buying_power = float(account.buying_power)
+    # Spend only real cash. Alpaca's buying_power includes margin (up to 4x
+    # equity on many accounts), which would quietly leverage the account.
+    buying_power = max(0.0, min(float(account.buying_power), float(account.cash)))
     equity = float(account.equity)
 
     held_symbols = set()
     if settings.get("excludeHeld", True):
         held_symbols = {p.symbol for p in client.get_all_positions()}
 
-    candidates = [p for p in last_scan["picks"] if p["symbol"] not in held_symbols]
+    # Don't buy back anything sold today, and don't buy a pick that's already
+    # below its 20-day average - the exit rule would sell it again on the
+    # very next check. Without this, Auto mode could sell and re-buy the same
+    # stock every hour.
+    sold_today = _sold_today()
+    candidates = []
+    pre_skipped = []
+    for p in last_scan["picks"]:
+        if p["symbol"] in held_symbols:
+            continue
+        if p["symbol"] in sold_today:
+            pre_skipped.append({"symbol": p["symbol"], "reason": "Sold earlier today - not buying it back the same day."})
+            continue
+        if p.get("ma20") and p["price"] < p["ma20"]:
+            pre_skipped.append({"symbol": p["symbol"], "reason": "Below its 20-day average - the exit rule would sell it right away."})
+            continue
+        candidates.append(p)
     if not candidates:
-        _append_log("buy", "No eligible picks to buy (top picks are already held, or the last scan returned nothing).")
-        return {"orders": [], "skipped": [], "message": "No eligible picks."}
+        _append_log("buy", "No eligible picks to buy (top picks are already held, were sold today, or the last scan returned nothing).")
+        return {"orders": [], "skipped": pre_skipped, "message": "No eligible picks."}
 
     fresh_prices = _latest_prices([c["symbol"] for c in candidates])
 
@@ -847,7 +886,7 @@ def run_buy():
 
     remaining_budget = available
     orders = []
-    skipped = []
+    skipped = list(pre_skipped)
 
     for pick in candidates:
         symbol = pick["symbol"]
@@ -996,7 +1035,8 @@ def run_sell_symbol(symbol):
             time_in_force=TimeInForce.DAY,
         ))
         _position_tracking_clear(symbol)
-        _append_log("sell", "Sold %s shares of %s (confirmed by you)." % (qty, symbol))
+        _record_sell(symbol)
+        _append_log("sell", "Sold %s shares of %s." % (qty, symbol))
         return {"symbol": symbol, "qty": qty, "orderId": str(order.id)}
     except Exception as e:
         _append_log("error", "Sell failed for %s: %s" % (symbol, e))
@@ -1232,6 +1272,7 @@ def run_backtest(settings):
             return float(p) if math.isfinite(p) else (float(CF[i, k]) if math.isfinite(CF[i, k]) else None)
 
         # 1) exits, decided on yesterday's close, filled at today's open
+        sold_today = set()
         for k in list(positions.keys()):
             pos = positions[k]
             cj = C[j, k]
@@ -1258,6 +1299,7 @@ def run_backtest(settings):
                 "reason": reason,
             })
             del positions[k]
+            sold_today.add(k)
 
         # 2) market regime filter (yesterday's S&P 500 vs its 200-day average)
         regime_ok = True
@@ -1284,7 +1326,14 @@ def run_backtest(settings):
                 order = np.argsort(-sc, kind="stable")[:top_n]
                 picks = [int(k) for k in order if valid[k]]
 
-                candidates = [k for k in picks if not (exclude_held and k in positions)]
+                # same buy filters as run_buy: no same-day buy-backs, nothing
+                # already below its 20-day average
+                candidates = [
+                    k for k in picks
+                    if not (exclude_held and k in positions)
+                    and k not in sold_today
+                    and not (math.isfinite(MA20[j, k]) and c[k] < MA20[j, k])
+                ]
                 if candidates:
                     equity = cash
                     for k, pos in positions.items():
@@ -1406,6 +1455,14 @@ AUTO_LOCK = threading.Lock()
 _scheduler_started = False
 
 
+def _console(msg):
+    """Prints to the server's own output (the app log on Home Assistant)."""
+    try:
+        print("[stocks %s] %s" % (datetime.now().strftime("%Y-%m-%d %H:%M"), msg), flush=True)
+    except Exception:
+        pass
+
+
 def get_auto_status():
     data = _load_data()
     return {
@@ -1422,10 +1479,17 @@ def run_auto_cycle():
         try:
             client, _ = _trading_client()
             if not client.get_clock().is_open:
-                _append_log("auto", "Auto cycle skipped - US market is closed.")
+                # Not written to the Activity Log: this happens ~17 times a
+                # day plus weekends and would push every real entry out of
+                # the 200-entry log within days.
+                _console("Auto cycle skipped - US market is closed.")
+                data = _load_data()
+                data["lastAutoCheck"] = {"timestamp": datetime.now(timezone.utc).isoformat(), "result": "Market closed"}
+                _save_data(data)
                 return {"skipped": "Market closed."}
         except Exception as e:
             _append_log("error", "Auto cycle couldn't check market hours: %s" % e)
+            _console("Auto cycle couldn't check market hours: %s" % e)
             return {"error": str(e)}
 
         _append_log("auto", "Auto cycle started.")
@@ -1460,6 +1524,7 @@ def run_auto_cycle():
         if summary["errors"]:
             msg += " Issues: " + "; ".join(summary["errors"])
         _append_log("auto", msg)
+        _console(msg)
 
         data = _load_data()
         data["lastAutoRun"] = {
@@ -1483,7 +1548,10 @@ def _scheduler_loop():
         try:
             if get_settings().get("autoMode"):
                 run_auto_cycle()
+            else:
+                _console("Auto mode is off - nothing to do this hour.")
         except Exception as e:
+            _console("Auto scheduler error: %s" % e)
             try:
                 _append_log("error", "Auto scheduler error: %s" % e)
             except Exception:
@@ -1497,3 +1565,4 @@ def start_scheduler():
         return
     _scheduler_started = True
     threading.Thread(target=_scheduler_loop, daemon=True, name="stocks-auto").start()
+    _console("Auto scheduler started - checks at the top of every hour.")

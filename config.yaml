@@ -1,0 +1,24 @@
+# Home Assistant add-on definition for MoSite.
+# Copy this whole folder to the Home Assistant "addons" share as
+# addons\mosite, then install "MoSite" under Local add-ons.
+name: MoSite
+version: "1.0.0"
+slug: mosite
+description: Budget planner, stock trader, meal planner and home/car maintenance logbook
+url: https://github.com/ae2mo/MoSite
+arch:
+  - amd64
+  - aarch64
+init: false
+startup: application
+boot: auto
+ports:
+  8000/tcp: 8000
+ports_description:
+  8000/tcp: MoSite web page
+webui: "http://[HOST]:[PORT:8000]/"
+# Your data lives in the add-on's own config folder (addon_configs\local_mosite
+# on the Samba share). It survives updates/rebuilds and is included in Home
+# Assistant backups.
+map:
+  - addon_config:rw

@@ -1333,6 +1333,20 @@
     var lines = buildShoppingLines(weekKey);
     var texts = [];
 
+    // Same order as the on-screen list: grocery categories in store order
+    // (Produce, Meat & Seafood, Dairy & Eggs, ...), alphabetical within each,
+    // then any hand-added extra items last.
+    function catRank(cat) {
+      var i = GROCERY_CATEGORIES.indexOf(cat || "Other");
+      return i === -1 ? GROCERY_CATEGORIES.length : i;
+    }
+    lines.sort(function (a, b) {
+      var ra = catRank(a.category), rb = catRank(b.category);
+      if (ra !== rb) return ra - rb;
+      if ((a.category || "") !== (b.category || "")) return (a.category || "").localeCompare(b.category || "");
+      return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+    });
+
     lines.forEach(function (line) {
       if (sl.checked[line.key]) return;
       texts.push(formatLineText(line));

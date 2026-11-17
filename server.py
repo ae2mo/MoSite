@@ -38,8 +38,12 @@ HOST = "0.0.0.0"          # listen on all interfaces so the LAN can reach it
 PORT = 8000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
-DATA_FILE = os.path.join(BASE_DIR, "data.json")
-BACKUP_DIR = os.path.join(BASE_DIR, "backups")
+# Where the personal data files live. Next to this file by default; the Home
+# Assistant add-on points it at its persistent /config folder instead.
+DATA_DIR = os.environ.get("MOSITE_DATA_DIR") or BASE_DIR
+os.makedirs(DATA_DIR, exist_ok=True)
+DATA_FILE = os.path.join(DATA_DIR, "data.json")
+BACKUP_DIR = os.path.join(DATA_DIR, "backups")
 BACKUP_KEEP = 30  # keep this many most-recent daily snapshots per file
 
 if BASE_DIR not in sys.path:
@@ -119,7 +123,7 @@ def save_data(data):
 # the schema" approach as the Budget app - all meal/plan/shopping-list logic
 # lives in static/meals/app.js, not here.
 
-MEALS_DATA_FILE = os.path.join(BASE_DIR, "meals_data.json")
+MEALS_DATA_FILE = os.path.join(DATA_DIR, "meals_data.json")
 MEALS_DATA_LOCK = threading.Lock()
 
 
@@ -163,7 +167,7 @@ def save_meals_data(data):
 # Home/Car Maintenance has its own JSON blob too (same generic approach) -
 # all logbook logic lives in static/maintenance/app.js.
 
-MAINT_DATA_FILE = os.path.join(BASE_DIR, "maintenance_data.json")
+MAINT_DATA_FILE = os.path.join(DATA_DIR, "maintenance_data.json")
 MAINT_DATA_LOCK = threading.Lock()
 
 
