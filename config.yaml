@@ -2,7 +2,7 @@
 # Copy this whole folder to the Home Assistant "addons" share as
 # addons\mosite, then install "MoSite" under Local add-ons.
 name: MoSite
-version: "1.0.0"
+version: "1.2.0"
 slug: mosite
 description: Budget planner, stock trader, meal planner and home/car maintenance logbook
 url: https://github.com/ae2mo/MoSite
@@ -17,6 +17,14 @@ ports:
 ports_description:
   8000/tcp: MoSite web page
 webui: "http://[HOST]:[PORT:8000]/"
+# Sidebar button. Opens the site inside Home Assistant (works remotely
+# through Nabu Casa too). Turn it on/off with "Show in sidebar" on the
+# app's Info page. panel_admin: false lets non-admin users see it as well.
+ingress: true
+ingress_port: 8000
+panel_icon: mdi:currency-usd
+panel_title: MoSite
+panel_admin: false
 # Your data lives in the add-on's own config folder (addon_configs\local_mosite
 # on the Samba share). It survives updates/rebuilds and is included in Home
 # Assistant backups.

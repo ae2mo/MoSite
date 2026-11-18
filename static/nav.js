@@ -24,7 +24,7 @@
     menu.innerHTML = "";
     PAGES.forEach(function (p) {
       var a = document.createElement("a");
-      a.href = p.href;
+      a.href = (window.MOSITE_BASE || "") + p.href; // MOSITE_BASE is set when opened from the Home Assistant sidebar
       if (p.key === currentPage) a.classList.add("active");
       a.innerHTML =
         '<span class="nav-item-title">' + p.title + "</span>" +

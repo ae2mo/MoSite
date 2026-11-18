@@ -272,14 +272,45 @@ class BudgetRequestHandler(BaseHTTPRequestHandler):
         content_type = CONTENT_TYPES.get(ext, "application/octet-stream")
         with open(path, "rb") as f:
             body = f.read()
+        prefix = self._ingress_prefix()
+        if ext == ".html" and prefix:
+            body = self._apply_ingress_prefix(body, prefix)
         try:
             self.send_response(200)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
+            if ext == ".html":
+                self.send_header("Cache-Control", "no-cache")
             self.end_headers()
             self.wfile.write(body)
         except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError, OSError):
             pass
+
+    # ---------- Home Assistant sidebar (ingress) support ----------
+    # When the site is opened from the Home Assistant sidebar, every request
+    # arrives through a path like /api/hassio_ingress/<token>/..., with that
+    # prefix in the X-Ingress-Path header. The pages use root paths
+    # ("/style.css", fetch("/api/...")), so for those requests the HTML is
+    # adjusted on the way out: root links get the prefix, and a tiny script
+    # adds it to every fetch() call. Requests without the header (opening the
+    # site directly, or on Windows) are served completely unchanged.
+
+    def _ingress_prefix(self):
+        p = (self.headers.get("X-Ingress-Path") or "").strip().rstrip("/")
+        if not p.startswith("/") or any(c in p for c in "\"'<> "):
+            return ""
+        return p
+
+    def _apply_ingress_prefix(self, body, prefix):
+        text = body.decode("utf-8")
+        text = text.replace('href="/', 'href="%s/' % prefix).replace('src="/', 'src="%s/' % prefix)
+        shim = (
+            "<script>window.MOSITE_BASE=%s;(function(){var b=window.MOSITE_BASE,f=window.fetch;"
+            "window.fetch=function(u,o){if(typeof u===\"string\"&&u.charAt(0)===\"/\"&&u.indexOf(b+\"/\")!==0){u=b+u;}"
+            "return f.call(this,u,o);};})();</script>" % json.dumps(prefix)
+        )
+        text = text.replace("<head>", "<head>\n" + shim, 1)
+        return text.encode("utf-8")
 
     def _read_json_body(self):
         length = int(self.headers.get("Content-Length", 0))
@@ -354,7 +385,7 @@ class BudgetRequestHandler(BaseHTTPRequestHandler):
             # e.g. someone typed /stocks with no trailing slash - send them
             # to /stocks/ so the browser's relative asset paths still work
             self.send_response(301)
-            self.send_header("Location", parsed.path + "/")
+            self.send_header("Location", self._ingress_prefix() + parsed.path + "/")
             self.end_headers()
             return
 

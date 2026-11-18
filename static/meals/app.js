@@ -1212,59 +1212,133 @@
     return row;
   }
 
+  // ----- store walk order -----
+  // The list follows a path through a typical Walmart-style store: in at the
+  // front, along the outside wall through Produce, Meat and Dairy to the
+  // back, then back toward the front through the center aisles, finishing
+  // with drinks and bread near the front. Produce/Meat/Dairy come from the
+  // ingredient's grocery category; center-aisle items are placed by what
+  // they are (name keywords), because "Pantry" alone covers half the store.
+
+  var STORE_SECTIONS = [
+    { label: "Produce" },
+    { label: "Meat & Seafood" },
+    { label: "Dairy & Eggs" },
+    { label: "Frozen", keys: ["frozen", "ice cream", "popsicle", "tater tot", "french fries"] },
+    { label: "Breakfast & Coffee", keys: ["cereal", "oatmeal", "oats", "granola", "pancake mix", "waffle mix", "syrup", "maple syrup", "coffee", "tea", "creamer", "pop tart"] },
+    { label: "Baking, Spices & Oils", keys: ["flour", "sugar", "brown sugar", "powdered sugar", "baking soda", "baking powder", "yeast", "vanilla", "vanilla extract", "cocoa", "chocolate chip", "cornstarch", "cornmeal", "shortening", "breadcrumb", "bread crumb", "panko", "oil", "olive oil", "vegetable oil", "canola oil", "cooking spray", "vinegar", "salt", "pepper", "black pepper", "cumin", "paprika", "smoked paprika", "cinnamon", "oregano", "thyme", "dried basil", "rosemary", "chili powder", "garlic powder", "onion powder", "seasoning", "spice", "nutmeg", "bay leaf", "bay leaves", "cayenne", "red pepper flake", "bouillon", "ginger powder", "turmeric", "allspice", "cloves"] },
+    { label: "Canned Goods & Soups", keys: ["canned", "beans", "black beans", "kidney beans", "pinto beans", "chickpea", "broth", "stock", "soup", "tomato sauce", "tomato paste", "diced tomatoes", "crushed tomatoes", "tuna", "evaporated milk", "condensed milk", "coconut milk", "green chiles", "chipotle", "cream of"] },
+    { label: "Pasta, Rice & International", keys: ["pasta", "spaghetti", "penne", "rotini", "macaroni", "noodle", "lasagna", "orzo", "egg noodles", "rice", "quinoa", "couscous", "marinara", "pasta sauce", "alfredo", "soy sauce", "teriyaki", "taco", "taco seasoning", "taco shell", "tortilla", "salsa", "enchilada sauce", "refried beans", "ramen", "curry"] },
+    { label: "Other Pantry Items" },
+    { label: "Condiments & Spreads", keys: ["ketchup", "mustard", "mayonnaise", "mayo", "dressing", "ranch", "bbq sauce", "barbecue sauce", "hot sauce", "sriracha", "worcestershire", "pickle", "relish", "peanut butter", "jelly", "jam", "honey", "olives"] },
+    { label: "Snacks", keys: ["chips", "crackers", "cookies", "popcorn", "pretzels", "nuts", "almonds", "peanuts", "pecans", "walnuts", "granola bar", "trail mix", "raisins"] },
+    { label: "Beverages", keys: ["juice", "soda", "water", "sparkling water", "wine", "beer", "lemonade", "sports drink"] },
+    { label: "Bread & Bakery", keys: ["bread", "buns", "hamburger buns", "hot dog buns", "rolls", "dinner rolls", "bagel", "english muffin", "croissant", "pita"] },
+    { label: "Other" }
+  ];
+
+  // Order the keyword checks so specific phrases win over generic words
+  // ("taco seasoning" -> International, not Spices; "tomato sauce" -> Canned).
+  var SECTION_CHECK_ORDER = [
+    "Frozen", "Pasta, Rice & International", "Canned Goods & Soups", "Breakfast & Coffee",
+    "Condiments & Spreads", "Snacks", "Bread & Bakery", "Beverages", "Baking, Spices & Oils"
+  ];
+
+  var CATEGORY_FALLBACK_SECTION = {
+    "Frozen": "Frozen",
+    "Beverages": "Beverages",
+    "Bakery": "Bread & Bakery",
+    "Spices & Condiments": "Baking, Spices & Oils",
+    "Pantry": "Other Pantry Items",
+    "Other": "Other"
+  };
+
+  var sectionRegexCache = {};
+  function sectionRegex(section) {
+    if (!sectionRegexCache[section.label]) {
+      var parts = section.keys.slice().sort(function (a, b) { return b.length - a.length; }).map(function (k) {
+        return k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      });
+      sectionRegexCache[section.label] = new RegExp("\\b(" + parts.join("|") + ")(e?s)?\\b", "i");
+    }
+    return sectionRegexCache[section.label];
+  }
+
+  function sectionByLabel(label) {
+    for (var i = 0; i < STORE_SECTIONS.length; i++) if (STORE_SECTIONS[i].label === label) return i;
+    return STORE_SECTIONS.length - 1;
+  }
+
+  // Phrases that clearly mean a center-aisle item even when the ingredient's
+  // category says Produce/Meat/Dairy (the automatic category guess files
+  // "chicken broth" under Meat and "garlic powder" under Produce).
+  var PANTRY_OVERRIDE = /\b(broth|stock|soup|bouillon|cream of|peanut butter|coconut milk|condensed milk|evaporated milk|powder|seasoning|tomato sauce|tomato paste|crushed tomatoes|diced tomatoes|salsa|frozen|dried|flakes|extract)\b/i;
+
+  // Best keyword match across the center-aisle sections: the longest
+  // matching phrase wins ("taco seasoning" beats "seasoning", "chocolate
+  // chips" beats "chips"); ties go to SECTION_CHECK_ORDER.
+  function bestKeywordSection(name) {
+    var best = -1, bestLen = 0;
+    for (var i = 0; i < SECTION_CHECK_ORDER.length; i++) {
+      var idx = sectionByLabel(SECTION_CHECK_ORDER[i]);
+      var m = sectionRegex(STORE_SECTIONS[idx]).exec(name);
+      if (m && m[1].length > bestLen) { best = idx; bestLen = m[1].length; }
+    }
+    return best;
+  }
+
+  // Returns the index into STORE_SECTIONS for a shopping line or extra item.
+  function storeSectionIndex(name, category) {
+    var cat = category || "Other";
+    var n = String(name || "");
+    var perimeter = cat === "Produce" || cat === "Meat & Seafood" || cat === "Dairy & Eggs";
+    if (perimeter && !PANTRY_OVERRIDE.test(n)) return sectionByLabel(cat);
+    var kw = bestKeywordSection(n);
+    if (kw !== -1) return kw;
+    if (perimeter) return sectionByLabel(cat);
+    return sectionByLabel(CATEGORY_FALLBACK_SECTION[cat] || "Other");
+  }
+
+  // The whole week's list in walking order: [{label, entries: [{line} | {extra}]}]
+  function buildStoreWalk(weekKey) {
+    var sl = ensureShoppingList(weekKey);
+    var buckets = STORE_SECTIONS.map(function (s) { return { label: s.label, entries: [] }; });
+    buildShoppingLines(weekKey).forEach(function (line) {
+      buckets[storeSectionIndex(line.name, line.category)].entries.push({ line: line, sortName: line.name });
+    });
+    sl.extraItems.forEach(function (item) {
+      buckets[storeSectionIndex(item.name, item.category)].entries.push({ extra: item, sortName: item.name || "" });
+    });
+    buckets.forEach(function (b) {
+      b.entries.sort(function (a, c) { return a.sortName.localeCompare(c.sortName, undefined, { sensitivity: "base" }); });
+    });
+    return buckets.filter(function (b) { return b.entries.length; });
+  }
+
   function renderShoppingList() {
     var weekKey = state.activeWeek;
     var sl = ensureShoppingList(weekKey);
-    var lines = buildShoppingLines(weekKey);
+    var walk = buildStoreWalk(weekKey);
 
     var container = document.getElementById("shopping-list");
     container.innerHTML = "";
 
-    if (!lines.length && !sl.extraItems.length) {
+    if (!walk.length) {
       container.innerHTML = '<p class="empty-row">No items yet — assign some meals above, or add an extra item below.</p>';
       return;
     }
 
-    var byCategory = {};
-    lines.forEach(function (line) {
-      var cat = line.category || "Other";
-      if (!byCategory[cat]) byCategory[cat] = [];
-      byCategory[cat].push(line);
-    });
-
-    var categoriesInUse = GROCERY_CATEGORIES.filter(function (c) { return byCategory[c] && byCategory[c].length; });
-    Object.keys(byCategory).forEach(function (c) {
-      if (categoriesInUse.indexOf(c) === -1) categoriesInUse.push(c);
-    });
-
-    categoriesInUse.forEach(function (cat) {
+    walk.forEach(function (section) {
       var group = document.createElement("div");
       group.className = "shopping-group";
       var heading = document.createElement("h3");
-      heading.textContent = cat;
+      heading.textContent = section.label;
       group.appendChild(heading);
-
-      byCategory[cat].sort(function (a, b) {
-        return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+      section.entries.forEach(function (entry) {
+        group.appendChild(entry.line ? buildShoppingLineRow(entry.line, sl) : buildExtraItemRow(entry.extra, sl));
       });
-      byCategory[cat].forEach(function (line) {
-        group.appendChild(buildShoppingLineRow(line, sl));
-      });
-
       container.appendChild(group);
     });
-
-    if (sl.extraItems.length) {
-      var extraGroup = document.createElement("div");
-      extraGroup.className = "shopping-group";
-      var extraHeading = document.createElement("h3");
-      extraHeading.textContent = "Extra Items";
-      extraGroup.appendChild(extraHeading);
-      sl.extraItems.forEach(function (item) {
-        extraGroup.appendChild(buildExtraItemRow(item, sl));
-      });
-      container.appendChild(extraGroup);
-    }
   }
 
   function populateExtraCategorySelect() {
@@ -1330,32 +1404,22 @@
   function collectUnshoppedItems() {
     var weekKey = state.activeWeek;
     var sl = ensureShoppingList(weekKey);
-    var lines = buildShoppingLines(weekKey);
     var texts = [];
 
-    // Same order as the on-screen list: grocery categories in store order
-    // (Produce, Meat & Seafood, Dairy & Eggs, ...), alphabetical within each,
-    // then any hand-added extra items last.
-    function catRank(cat) {
-      var i = GROCERY_CATEGORIES.indexOf(cat || "Other");
-      return i === -1 ? GROCERY_CATEGORIES.length : i;
-    }
-    lines.sort(function (a, b) {
-      var ra = catRank(a.category), rb = catRank(b.category);
-      if (ra !== rb) return ra - rb;
-      if ((a.category || "") !== (b.category || "")) return (a.category || "").localeCompare(b.category || "");
-      return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
-    });
-
-    lines.forEach(function (line) {
-      if (sl.checked[line.key]) return;
-      texts.push(formatLineText(line));
-    });
-
-    sl.extraItems.forEach(function (item) {
-      if (item.checked) return;
-      var qtyUnit = ((item.quantity || "") + " " + (item.unit || "")).trim();
-      texts.push((qtyUnit ? qtyUnit + " " : "") + item.name);
+    // Same walking order as the on-screen list (see buildStoreWalk), with
+    // hand-added extra items in their aisle rather than tacked on the end.
+    buildStoreWalk(weekKey).forEach(function (section) {
+      section.entries.forEach(function (entry) {
+        if (entry.line) {
+          if (sl.checked[entry.line.key]) return;
+          texts.push(formatLineText(entry.line));
+        } else {
+          var item = entry.extra;
+          if (item.checked) return;
+          var qtyUnit = ((item.quantity || "") + " " + (item.unit || "")).trim();
+          texts.push((qtyUnit ? qtyUnit + " " : "") + item.name);
+        }
+      });
     });
 
     return texts;
