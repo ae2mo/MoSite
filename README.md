@@ -25,6 +25,19 @@ from their own browser. It now has more than one section: click the blue
   Home Assistant to-do list (needs a one-time Home Assistant URL + token;
   see the gear next to "Send to Home Assistant" on the Shopping List tab).
 
+## Home Assistant app
+
+On Home Assistant OS, open **Settings > Apps > Install app**, then add
+`https://github.com/ae2mo/MoSite` under custom repositories. MoSite will
+appear in the app store. Install it, start it, and optionally show it in the
+sidebar. Home Assistant Container installations do not have the app store.
+
+The installable app and its Python and `static/` sources are in `mosite/`.
+Its `/config` folder stores personal data across updates and backups. The
+root `server.py` and Windows launcher still run the same app, storing local
+data in the repository's root folder. Bump `mosite/config.yaml`'s version
+when publishing an app update.
+
 ## What's included
 
 - **Month navigator** — a ‹ Prev / month picker / Next › bar (visible on
@@ -102,7 +115,7 @@ Every entry you've made — receipts, pay periods, accounts, everything —
 lives in `data.json` and is precious; it's not sample data. When this app
 gains new features or its schema changes, existing months/items are never
 dropped or reset to add a new field. Instead, a `migrate*Schema()`
-function (see `static/app.js`, e.g. `migrateIncomeSchema`,
+function (see `mosite/static/app.js`, e.g. `migrateIncomeSchema`,
 `migrateExpensesSchema`, `migrateSavingsSchema`) backfills the new field
 onto old entries the first time that month is touched, so nothing already
 entered is ever lost or overwritten by a code update. Any new schema
@@ -187,30 +200,19 @@ through the firewall for private/home networks.
 ## File layout
 
 ```
-homebudget/
-  server.py                       Local web server (stdlib only)
-  data.json                        Your saved budget data (created automatically)
-  meals_data.json                   Your saved meal planner data (created automatically)
-  backups/                           Daily snapshots of data.json/meals_data.json (created automatically)
-  meals_recipe_import.py             Recipe URL/bulk import logic (stdlib only)
-  homeassistant_export.py             Sends the shopping list to Home Assistant (stdlib only)
-  homeassistant_config.json            Your Home Assistant URL/token (created when you save settings)
-  Start Budget Site.bat             Double-click to launch on Windows
-  tray_launcher.py                   Runs the server with a system tray icon, no console window
-  requirements-tray.txt               pip install -r this, for the tray icon
-  statement_import.py                  Parses a bank statement PDF (needs pdfplumber)
-  requirements-statement-import.txt     pip install -r this, for Import Statement
-  stocks_engine.py                   Stock Trader logic (see STOCKS_README.md)
-  stocks_config.example.json          Template for your Alpaca API keys
-  requirements-stocks.txt              pip install -r this, for the Stock Trader page
-  STOCKS_README.md                      Setup & details for the Stock Trader page
-  static/
-    nav.js, nav.css                     Shared page-switcher menu (the $ logo)
-    index.html, style.css, app.js         This page
-    stocks/
-      index.html, style.css, app.js        Stock Trader page
-    meals/
-      index.html, style.css, app.js        Meal Planner page
+MoSite/
+  server.py                         Standalone Python launcher
+  Start Budget Site.bat             Windows launcher
+  tray_launcher.py                   Windows system tray launcher
+  data.json, meals_data.json         Local data (created automatically)
+  backups/                           Local data snapshots
+  stocks_config.json                Local API keys (never publish)
+  homeassistant_config.json          Local Home Assistant settings (never publish)
+  mosite/
+    config.yaml, Dockerfile          Home Assistant app definition
+    server.py, stocks_engine.py      Shared server and stock logic
+    ha_start.py                      Home Assistant entry point
+    static/                          Budget, stocks, meals, and maintenance pages
 ```
 
 ## Notes on the 401K/TSP projection math

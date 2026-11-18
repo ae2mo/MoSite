@@ -1,9 +1,8 @@
 """
 ha_start.py - entry point when MoSite runs as a Home Assistant add-on.
 
-The add-on keeps your data in /config (shown on the Samba share as
-addon_configs\\local_mosite), which survives rebuilds and is included in
-Home Assistant backups. On the very first start, any data files that were
+The app keeps your data in /config, which survives rebuilds and is included
+in Home Assistant backups. On the very first start, any data files that were
 copied over along with the code (data.json, meals_data.json, ...) are moved
 into /config so you pick up exactly where you left off. After that, /config
 is the only copy the add-on reads or writes - files in the code folder are
