@@ -1,0 +1,9 @@
+# Only needed for the Budget page's "Import Statement" feature (Dashboard >
+# Log a Receipt > Import Statement) - reading transactions out of a bank/
+# card statement PDF. server.py and every other feature need nothing beyond
+# the standard library.
+#
+# Install with:
+#   pip install -r requirements-statement-import.txt
+
+pdfplumber>=0.10

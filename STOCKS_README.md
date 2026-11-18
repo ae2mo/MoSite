@@ -211,13 +211,13 @@ rule 4 alone.
 
 ```
 homebudget/
-  stocks_engine.py               All Alpaca/pandas/yfinance logic (server-side only)
+  mosite/stocks_engine.py        All Alpaca/pandas/yfinance logic (server-side only)
   stocks_config.json              Your real API keys (you create this — never share it)
   stocks_config.example.json       Template, safe to share
   stocks_data.json                 Settings, activity log, portfolio snapshots, last scan,
                                     and position tracking (entry date/price, peak price)
   requirements-stocks.txt          pip install -r this
-  static/
+  mosite/static/
     nav.js, nav.css                Shared dropdown menu (used by every page)
     stocks/
       index.html, style.css, app.js   This page

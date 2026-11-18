@@ -1,0 +1,11 @@
+# Only needed for the Stock Trader page. The Budget pages need nothing
+# beyond the Python standard library.
+#
+# Install with:
+#   pip install -r requirements-stocks.txt
+
+alpaca-py>=0.33
+pandas>=2.0
+numpy>=1.24
+yfinance>=0.2.40
+lxml>=5.0

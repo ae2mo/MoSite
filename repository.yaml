@@ -1,9 +1,6 @@
-# Lets Home Assistant install MoSite straight from GitHub:
-# Settings > Apps > App Store > (three dots, top right) > Repositories >
-# add https://github.com/ae2mo/MoSite
-# The app itself is defined by config.yaml + Dockerfile in this same folder.
-# Home Assistant only offers an update when the "version" in config.yaml
-# changes, so bump it whenever you push changes you want installed.
+# Add https://github.com/ae2mo/MoSite as a custom app repository.
+# The installable app is in mosite/, with its own config.yaml and Dockerfile.
+# Bump mosite/config.yaml's version when publishing app changes.
 name: MoSite
 url: https://github.com/ae2mo/MoSite
 maintainer: ae2mo
